@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useMemo } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
@@ -28,6 +28,7 @@ function AmenityPill({ amenity }: { amenity: Turf['amenities'][number] }) {
 }
 
 export default function TurfDetail() {
+  const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   const { data, isLoading } = useTurfById(id);
@@ -130,11 +131,12 @@ export default function TurfDetail() {
             <Pressable
               accessibilityRole="button"
               onPress={() => {
-                // UI-only: booking flow is not implemented yet.
+                if (!id) return;
+                router.push(`/booking?turfId=${id}`);
               }}
               className="rounded-full bg-[#16a34a] px-4 py-4 items-center shadow-sm"
             >
-              <Text className="text-base font-bold text-white">Book Now</Text>
+              <Text className="text-base font-bold text-white">Book Slot</Text>
             </Pressable>
           </View>
         </View>
