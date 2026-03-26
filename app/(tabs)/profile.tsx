@@ -169,58 +169,40 @@ export default function Profile() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView contentContainerClassName="px-4 pb-28 pt-2">
-        {/* Header */}
-        <View className="rounded-3xl overflow-hidden border border-gray-100 bg-white shadow-sm">
-          <View className="h-28 bg-green-600" />
+        <Text className="text-2xl font-extrabold text-gray-900">
+          My Profile
+        </Text>
 
-          <View className="px-4 -mt-8 pb-4 flex-row items-center gap-4">
-            <View className="h-20 w-20 rounded-2xl bg-white items-center justify-center border border-gray-100 shadow-sm">
+        {/* Header */}
+        <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-gray-50 border border-gray-100 px-4 py-4">
+          <View className="flex-row items-center gap-3">
+            <View className="h-16 w-16 items-center justify-center rounded-full bg-green-200">
               <Text className="text-2xl font-extrabold text-green-700">A</Text>
             </View>
 
-            <View className="flex-1">
-              <Text className="text-xl font-extrabold text-gray-900">Amit</Text>
-              <View className="mt-1 flex-row items-center gap-2">
-                <Ionicons name="pin" size={16} color="#16a34a" />
-                <Text
-                  className="text-sm font-semibold text-gray-600"
-                  numberOfLines={1}
-                >
+            <View>
+              <Text className="text-lg font-extrabold text-gray-900">Amit</Text>
+              <View className="mt-1 flex-row items-center gap-1.5">
+                <Ionicons name="pin" size={14} color="#16a34a" />
+                <Text className="text-sm font-semibold text-gray-600">
                   Indiranagar
                 </Text>
               </View>
-
-              <View className="mt-3 flex-row items-center gap-2">
-                <View className="rounded-full bg-green-50 px-3 py-1 border border-green-100">
-                  <Text className="text-xs font-extrabold text-green-700">
-                    Premium
-                  </Text>
-                </View>
-                <View className="rounded-full bg-gray-100 px-3 py-1 border border-gray-200">
-                  <Text className="text-xs font-extrabold text-gray-700">
-                    Top Rated
-                  </Text>
-                </View>
-              </View>
+              <Text className="mt-1 text-xs font-medium text-gray-400">
+                Player profile
+              </Text>
             </View>
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() =>
-                Alert.alert(
-                  'Coming soon',
-                  'Notifications are not wired up yet.',
-                )
-              }
-              className="rounded-2xl bg-white/90 border border-gray-100 px-3 py-3"
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={22}
-                color="#16a34a"
-              />
-            </Pressable>
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() =>
+              Alert.alert('Coming soon', 'Profile editing is not wired up yet.')
+            }
+            className="rounded-xl bg-gray-100 px-3 py-2"
+          >
+            <Ionicons name="create-outline" size={18} color="#16a34a" />
+          </Pressable>
         </View>
 
         {/* Stats */}

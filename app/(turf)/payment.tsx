@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,12 +24,38 @@ export default function PaymentScreen() {
   const payableAmount = Number(amount ?? 0);
   const selectedSlots = (slots ?? '').split('|').filter(Boolean);
   const hoursCount = Number(hours ?? (selectedSlots.length || 0));
+  const paymentMethods = [
+    {
+      id: 'upi',
+      title: 'UPI',
+      subtitle: 'Pay using any UPI app',
+      icon: 'phone-portrait-outline' as const,
+    },
+    {
+      id: 'card',
+      title: 'Credit / Debit Card',
+      subtitle: 'Visa, Mastercard, RuPay',
+      icon: 'card-outline' as const,
+    },
+    {
+      id: 'netbanking',
+      title: 'Net Banking',
+      subtitle: 'All major banks supported',
+      icon: 'business-outline' as const,
+    },
+  ];
+  const [selectedMethodId, setSelectedMethodId] = useState(
+    paymentMethods[0].id,
+  );
   const slotSummary =
     selectedSlots.length > 1
       ? `${selectedSlots[0].split(' - ')[0]} - ${
           selectedSlots[selectedSlots.length - 1].split(' - ')[1]
         }`
       : (selectedSlots[0] ?? '');
+  const selectedMethod =
+    paymentMethods.find((method) => method.id === selectedMethodId) ??
+    paymentMethods[0];
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -87,60 +114,49 @@ export default function PaymentScreen() {
                 Choose payment method
               </Text>
 
-              {[
-                {
-                  title: 'UPI',
-                  subtitle: 'Pay using any UPI app',
-                  icon: 'phone-portrait-outline' as const,
-                },
-                {
-                  title: 'Credit / Debit Card',
-                  subtitle: 'Visa, Mastercard, RuPay',
-                  icon: 'card-outline' as const,
-                },
-                {
-                  title: 'Net Banking',
-                  subtitle: 'All major banks supported',
-                  icon: 'business-outline' as const,
-                },
-              ].map((method, index) => (
-                <Pressable
-                  key={method.title}
-                  className={`mt-3 flex-row items-center justify-between rounded-[20px] border px-3.5 py-3 ${
-                    index === 0
-                      ? 'border-green-600 bg-green-50'
-                      : 'border-gray-200 bg-white'
-                  }`}
-                >
-                  <View className="flex-row items-center gap-3">
-                    <View
-                      className={`h-10 w-10 items-center justify-center rounded-xl ${
-                        index === 0 ? 'bg-green-600' : 'bg-gray-100'
-                      }`}
-                    >
-                      <Ionicons
-                        name={method.icon}
-                        size={18}
-                        color={index === 0 ? '#ffffff' : '#111827'}
-                      />
-                    </View>
-                    <View>
-                      <Text className="text-base font-bold text-gray-900">
-                        {method.title}
-                      </Text>
-                      <Text className="mt-0.5 text-xs font-medium text-gray-500">
-                        {method.subtitle}
-                      </Text>
-                    </View>
-                  </View>
+              {paymentMethods.map((method) => {
+                const isSelected = method.id === selectedMethodId;
 
-                  <Ionicons
-                    name={index === 0 ? 'radio-button-on' : 'radio-button-off'}
-                    size={20}
-                    color={index === 0 ? '#16a34a' : '#9ca3af'}
-                  />
-                </Pressable>
-              ))}
+                return (
+                  <Pressable
+                    key={method.title}
+                    onPress={() => setSelectedMethodId(method.id)}
+                    className={`mt-3 flex-row items-center justify-between rounded-[20px] border px-3.5 py-3 ${
+                      isSelected
+                        ? 'border-green-600 bg-green-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <View className="flex-row items-center gap-3">
+                      <View
+                        className={`h-10 w-10 items-center justify-center rounded-xl ${
+                          isSelected ? 'bg-green-600' : 'bg-gray-100'
+                        }`}
+                      >
+                        <Ionicons
+                          name={method.icon}
+                          size={18}
+                          color={isSelected ? '#ffffff' : '#111827'}
+                        />
+                      </View>
+                      <View>
+                        <Text className="text-base font-bold text-gray-900">
+                          {method.title}
+                        </Text>
+                        <Text className="mt-0.5 text-xs font-medium text-gray-500">
+                          {method.subtitle}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Ionicons
+                      name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                      size={20}
+                      color={isSelected ? '#16a34a' : '#9ca3af'}
+                    />
+                  </Pressable>
+                );
+              })}
             </View>
 
             <View className="mt-4 rounded-[22px] bg-white p-4 shadow-sm">
@@ -152,7 +168,16 @@ export default function PaymentScreen() {
           </ScrollView>
 
           <View className="absolute inset-x-0 bottom-0 border-t border-gray-100 bg-white px-4 pb-6 pt-3">
-            <Pressable className="rounded-[18px] bg-[#16a34a] px-6 py-4 items-center">
+            <Pressable
+              onPress={() =>
+                router.push(
+                  `/payment-success?turfId=${turf.id}&amount=${payableAmount}&method=${encodeURIComponent(
+                    selectedMethod.title,
+                  )}`,
+                )
+              }
+              className="rounded-[18px] bg-[#16a34a] px-6 py-4 items-center"
+            >
               <Text className="text-base font-bold text-white">
                 Pay {formatCurrency(payableAmount)}
               </Text>

@@ -136,7 +136,7 @@ export default function TurfDetail() {
               }}
               className="rounded-full bg-[#16a34a] px-4 py-4 items-center shadow-sm"
             >
-              <Text className="text-base font-bold text-white">Book Slot</Text>
+              <Text className="text-base font-bold text-white">Book Now</Text>
             </Pressable>
           </View>
         </View>
