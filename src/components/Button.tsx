@@ -30,10 +30,13 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      className={`min-h-[52px] items-center justify-center rounded-2xl px-[18px] ${
-        isDisabled ? 'opacity-70' : ''
-      } ${buttonClassName} ${className ?? ''}`}
+      className={`min-h-[52px] items-center justify-center rounded-2xl px-[18px] ${buttonClassName} ${
+        className ?? ''
+      }`}
       disabled={isDisabled}
+      style={({ pressed }) => ({
+        opacity: isDisabled ? 0.7 : pressed ? 0.9 : 1,
+      })}
       {...props}
     >
       {loading ? (

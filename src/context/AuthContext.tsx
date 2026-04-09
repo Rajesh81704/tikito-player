@@ -15,6 +15,7 @@ import {
 } from '@/src/lib/api';
 import { setUnauthorizedHandler } from '@/src/lib/axios';
 import {
+  clearStoredLocation,
   clearStoredToken,
   getStoredToken,
   setStoredToken,
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     async function resetAuthState() {
       await clearStoredToken();
+      await clearStoredLocation();
       setToken(null);
       setUser(null);
       queryClient.clear();
@@ -91,6 +93,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       await logoutUser();
     } finally {
       await clearStoredToken();
+      await clearStoredLocation();
       setToken(null);
       setUser(null);
       queryClient.clear();
