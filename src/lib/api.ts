@@ -26,6 +26,18 @@ export type AuthUser = {
   exp?: number;
 };
 
+export type Turf = {
+  turf_field_id: string;
+  turf_name: string;
+  turf_location: string | null;
+  turf_address: string | null;
+  no_of_grounds: number | null;
+  turf_facilities: string | null;
+  turf_rules: string | null;
+  longitude: string | null;
+  latitude: string | null;
+};
+
 type ApiErrorResponse = {
   error?: string;
   detail?: string;
@@ -85,6 +97,18 @@ export async function fetchCurrentUser() {
 export async function logoutUser() {
   try {
     const { data } = await apiClient.post('/auth/logout');
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function fetchTurfs(city?: string) {
+  try {
+    const { data } = await apiClient.get<Turf[]>('/users/turfs', {
+      params: city !== undefined ? { city } : undefined,
+    });
+
     return data;
   } catch (error) {
     throw new Error(extractApiErrorMessage(error));

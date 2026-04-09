@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
   fetchCurrentUser,
+  fetchTurfs,
   type LoginPayload,
   loginUser,
   logoutUser,
@@ -31,6 +32,15 @@ export function useCurrentUserQuery(enabled = true) {
   return useQuery({
     queryKey: ['auth', 'me'],
     queryFn: fetchCurrentUser,
+    enabled,
+    retry: 1,
+  });
+}
+
+export function useTurfsQuery(city?: string, enabled = true) {
+  return useQuery({
+    queryKey: ['turfs', city ?? 'all'],
+    queryFn: () => fetchTurfs(city),
     enabled,
     retry: 1,
   });

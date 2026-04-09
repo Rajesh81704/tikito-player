@@ -1,9 +1,11 @@
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
 import { LocationPermissionModal } from '@/src/components/LocationPermissionModal';
+import { TurfCard } from '@/src/components/TurfCard';
+import { useTurfsQuery } from '@/src/hooks/use-auth';
 import { useStoredLocation } from '@/src/hooks/use-stored-location';
 import { setStoredLocation } from '@/src/lib/storage';
 
@@ -13,6 +15,7 @@ export default function HomeScreen() {
   const { location, isLoading } = useStoredLocation();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+  const turfsQuery = useTurfsQuery(location?.city, Boolean(location?.city));
 
   useEffect(() => {
     if (!isLoading && !location) {
@@ -101,18 +104,48 @@ export default function HomeScreen() {
 
   return (
     <>
-      <View className="flex-1 justify-center gap-2.5 px-5">
-        <Text className="text-3xl font-bold text-slate-900">Home</Text>
-        <Text className="text-base leading-6 text-slate-600">
-          Your player home is ready for upcoming turf discovery and booking
-          features.
-        </Text>
-        {location ? (
-          <Text className="text-sm font-medium text-teal-700">
-            Current city: {location.city}
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-5 px-5 py-5"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="gap-2">
+          <Text className="text-3xl font-bold text-slate-900">Home</Text>
+          <Text className="text-base leading-6 text-slate-600">
+            Discover turf options curated for your current city.
           </Text>
-        ) : null}
-      </View>
+        </View>
+
+        {!location ? (
+          <View className="rounded-3xl border border-dashed border-slate-300 bg-white px-5 py-6">
+            <Text className="text-base font-semibold text-slate-900">
+              Turn on location to load nearby city turfs.
+            </Text>
+          </View>
+        ) : turfsQuery.isLoading ? (
+          <FullScreenLoader label="Loading turfs for your city..." />
+        ) : turfsQuery.isError ? (
+          <View className="rounded-3xl bg-rose-50 px-5 py-6">
+            <Text className="text-base font-semibold text-rose-700">
+              {turfsQuery.error instanceof Error
+                ? turfsQuery.error.message
+                : 'Could not load turfs for your city.'}
+            </Text>
+          </View>
+        ) : turfsQuery.data?.length ? (
+          <View className="gap-4">
+            {turfsQuery.data.map((turf) => (
+              <TurfCard key={turf.turf_field_id} turf={turf} />
+            ))}
+          </View>
+        ) : (
+          <View className="rounded-3xl border border-slate-200 bg-white px-5 py-6">
+            <Text className="text-base font-semibold text-slate-900">
+              No turfs found in {location.city}.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
 
       <LocationPermissionModal
         loading={isRequestingLocation}
