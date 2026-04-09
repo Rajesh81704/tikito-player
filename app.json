@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Tikito Player",
+    "name": "Tikito",
     "slug": "tikito-player",
     "version": "1.0.0",
     "scheme": "tikito-player",
@@ -15,7 +15,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Tikito Player to access your location so we can show turfs in your city."
+          "locationWhenInUsePermission": "Allow Tikito to access your location so we can show turfs in your city."
         }
       ]
     ],

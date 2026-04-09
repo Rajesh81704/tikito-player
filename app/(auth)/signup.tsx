@@ -87,9 +87,7 @@ export default function SignupScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="gap-2">
-            <Text className="text-[15px] font-bold text-teal-700">
-              Tikito Player
-            </Text>
+            <Text className="text-[15px] font-bold text-teal-700">Tikito</Text>
             <Text className="text-[34px] font-bold leading-10 text-slate-900">
               Create your account
             </Text>
