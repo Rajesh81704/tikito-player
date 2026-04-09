@@ -15,9 +15,19 @@ function formatBookedAt(value: string) {
   return format(new Date(value), 'MMMM d, yyyy');
 }
 
-export function BookingCard({ booking }: { booking: Booking }) {
+export function BookingCard({
+  booking,
+  className,
+}: {
+  booking: Booking;
+  className?: string;
+}) {
   return (
-    <View className="gap-3 rounded-3xl border border-slate-200 bg-white p-5">
+    <View
+      className={`gap-3 rounded-3xl border border-slate-200 bg-white p-5 ${
+        className ?? ''
+      }`}
+    >
       <View className="gap-1">
         <Text className="text-xl font-bold text-slate-900">
           {booking.turf_name}

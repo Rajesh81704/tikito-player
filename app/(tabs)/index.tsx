@@ -1,8 +1,9 @@
 import * as Location from 'expo-location';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
+import { isAfter, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
 
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
@@ -22,6 +23,14 @@ export default function HomeScreen() {
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const turfsQuery = useTurfsQuery(location?.city, Boolean(location?.city));
   const bookingsQuery = useMyBookingsQuery(true);
+  const upcomingBookings = useMemo(() => {
+    const today = startOfDay(new Date());
+
+    return (bookingsQuery.data ?? []).filter((booking) => {
+      const bookingDate = startOfDay(parseISO(booking.booking_date));
+      return isSameDay(bookingDate, today) || isAfter(bookingDate, today);
+    });
+  }, [bookingsQuery.data]);
 
   useEffect(() => {
     if (!isLoading && !location) {
@@ -189,10 +198,10 @@ export default function HomeScreen() {
           <View className="gap-3">
             <View className="gap-1">
               <Text className="text-2xl font-bold text-slate-900">
-                My Bookings
+                Upcoming bookings
               </Text>
               <Text className="text-sm leading-6 text-slate-600">
-                Your recent confirmed bookings will appear here.
+                Your upcoming confirmed bookings will appear here.
               </Text>
             </View>
 
@@ -206,19 +215,27 @@ export default function HomeScreen() {
                     : 'Could not load your bookings.'}
                 </Text>
               </View>
-            ) : bookingsQuery.data?.length ? (
-              <View className="gap-4">
-                {bookingsQuery.data.map((booking) => (
-                  <BookingCard booking={booking} key={booking.booking_id} />
+            ) : upcomingBookings.length ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="gap-4 pr-5"
+              >
+                {upcomingBookings.map((booking) => (
+                  <BookingCard
+                    booking={booking}
+                    className="w-[280px]"
+                    key={booking.booking_id}
+                  />
                 ))}
-              </View>
+              </ScrollView>
             ) : (
               <View className="rounded-3xl border border-dashed border-slate-300 bg-white px-5 py-8">
                 <Text className="text-center text-base font-semibold text-slate-900">
-                  No bookings yet
+                  No upcoming bookings
                 </Text>
                 <Text className="mt-2 text-center text-sm leading-6 text-slate-500">
-                  Once you book a slot, it will show up here.
+                  Once you book a future slot, it will show up here.
                 </Text>
               </View>
             )}
