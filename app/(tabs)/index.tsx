@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
@@ -135,7 +136,19 @@ export default function HomeScreen() {
         ) : turfsQuery.data?.length ? (
           <View className="gap-4">
             {turfsQuery.data.map((turf) => (
-              <TurfCard key={turf.turf_field_id} turf={turf} />
+              <TurfCard
+                key={turf.turf_field_id}
+                onPress={() => {
+                  router.push({
+                    pathname: '/turf/[turfId]',
+                    params: {
+                      turfId: turf.turf_field_id,
+                      turf: JSON.stringify(turf),
+                    },
+                  });
+                }}
+                turf={turf}
+              />
             ))}
           </View>
         ) : (

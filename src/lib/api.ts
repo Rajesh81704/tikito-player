@@ -38,6 +38,38 @@ export type Turf = {
   latitude: string | null;
 };
 
+export type GroundSlot = {
+  slot_id: string;
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+  price: string;
+  is_peak: boolean;
+};
+
+export type Ground = {
+  turf_ground_id: string;
+  ground_name: string;
+  ground_loc: string | null;
+  ground_type: string | null;
+  turf_field_id: string;
+  created_at: string;
+  updated_at: string;
+  ground_images: string[] | null;
+  is_active: boolean | null;
+  slots: GroundSlot[];
+};
+
+export type AvailableSlot = {
+  slot_id: string;
+  date: string;
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+  price: number;
+  is_peak: boolean;
+};
+
 type ApiErrorResponse = {
   error?: string;
   detail?: string;
@@ -108,6 +140,30 @@ export async function fetchTurfs(city?: string) {
     const { data } = await apiClient.get<Turf[]>('/users/turfs', {
       params: city !== undefined ? { city } : undefined,
     });
+
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function fetchGroundDetails(turfId: string) {
+  try {
+    const { data } = await apiClient.get<Ground[]>('/users/ground-details', {
+      params: { turf_id: turfId },
+    });
+
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function fetchAvailableSlots(turfGroundId: string) {
+  try {
+    const { data } = await apiClient.get<AvailableSlot[]>(
+      `/users/available-slots/${turfGroundId}`,
+    );
 
     return data;
   } catch (error) {

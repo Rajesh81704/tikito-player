@@ -1,15 +1,22 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { type Turf } from '@/src/lib/api';
 
 type TurfCardProps = {
   turf: Turf;
+  onPress?: () => void;
 };
 
-export function TurfCard({ turf }: TurfCardProps) {
+export function TurfCard({ turf, onPress }: TurfCardProps) {
   return (
-    <View className="gap-3 rounded-3xl border border-slate-200 bg-white p-5">
+    <Pressable
+      className="gap-3 rounded-3xl border border-slate-200 bg-white p-5"
+      onPress={onPress}
+      style={({ pressed }) => ({
+        opacity: pressed ? 0.92 : 1,
+      })}
+    >
       <View className="gap-1.5">
         <Text className="text-xl font-bold text-slate-900">
           {turf.turf_name}
@@ -27,6 +34,6 @@ export function TurfCard({ turf }: TurfCardProps) {
           {turf.no_of_grounds ?? 0} ground{turf.no_of_grounds === 1 ? '' : 's'}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
