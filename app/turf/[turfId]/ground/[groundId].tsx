@@ -97,10 +97,10 @@ export default function GroundSlotsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['left', 'right', 'bottom']}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-5 px-5 py-5 pb-28"
+        contentContainerClassName="gap-5 px-5 pb-28 pt-2"
         showsVerticalScrollIndicator={false}
       >
         {slotsQuery.isError ? (

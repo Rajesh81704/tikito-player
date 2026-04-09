@@ -1,4 +1,6 @@
 import * as Location from 'expo-location';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
@@ -12,6 +14,7 @@ import { useStoredLocation } from '@/src/hooks/use-stored-location';
 import { setStoredLocation } from '@/src/lib/storage';
 
 const LOCATION_TIMEOUT_MS = 10000;
+const HOME_STATUS_BAR_SPACING = Constants.statusBarHeight || 16;
 
 export default function HomeScreen() {
   const { location, isLoading } = useStoredLocation();
@@ -110,7 +113,10 @@ export default function HomeScreen() {
   return (
     <>
       {isWaitingForLocation ? (
-        <View className="flex-1 items-center justify-center gap-3 bg-slate-50 px-5">
+        <View
+          className="flex-1 items-center justify-center gap-3 bg-slate-50 px-5"
+          style={{ paddingTop: HOME_STATUS_BAR_SPACING }}
+        >
           <ActivityIndicator color="#0F766E" size="large" />
           <Text className="text-base font-medium text-slate-600">
             Waiting for location access...
@@ -119,11 +125,20 @@ export default function HomeScreen() {
       ) : (
         <ScrollView
           className="flex-1"
-          contentContainerClassName="gap-5 px-5 py-5"
+          contentContainerClassName="gap-5 px-5 pb-5"
+          contentContainerStyle={{ paddingTop: HOME_STATUS_BAR_SPACING }}
           showsVerticalScrollIndicator={false}
         >
           <View className="gap-1">
             <Text className="text-3xl font-bold text-slate-900">Home</Text>
+            {location ? (
+              <View className="flex-row items-center gap-1.5">
+                <Ionicons color="#0F766E" name="location-sharp" size={14} />
+                <Text className="text-sm font-medium text-slate-500">
+                  {location.city}
+                </Text>
+              </View>
+            ) : null}
             <Text className="text-base leading-6 text-slate-600">
               Discover turf options curated for your current city.
             </Text>

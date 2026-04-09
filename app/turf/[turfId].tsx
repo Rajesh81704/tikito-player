@@ -39,10 +39,10 @@ export default function TurfDetailsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['left', 'right', 'bottom']}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-5 px-5 py-5"
+        contentContainerClassName="gap-5 px-5 pb-5 pt-2"
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-3 rounded-[28px] border border-slate-200 bg-white p-5">

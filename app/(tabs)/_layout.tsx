@@ -2,7 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Redirect, Tabs } from 'expo-router';
 
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
-import { HomeHeaderTitle } from '@/src/components/HomeHeaderTitle';
 import { useAuth } from '@/src/context/AuthContext';
 
 export default function TabsLayout() {
@@ -19,15 +18,6 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: '#F8FAFC',
-        },
-        headerTitleStyle: {
-          fontSize: 28,
-          fontWeight: '700',
-        },
-        headerTintColor: '#0F172A',
         sceneStyle: {
           backgroundColor: '#F8FAFC',
         },
@@ -49,7 +39,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          headerTitle: () => <HomeHeaderTitle />,
+          headerShown: false,
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons

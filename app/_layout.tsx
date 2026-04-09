@@ -25,16 +25,25 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="profile/bookings" />
-            <Stack.Screen name="turf/[turfId]" />
-            <Stack.Screen name="turf/[turfId]/ground/[groundId]" />
-            <Stack.Screen name="turf/[turfId]/ground/[groundId]/book" />
-            <Stack.Screen name="turf/[turfId]/ground/[groundId]/success" />
-            <Stack.Screen name="+not-found" />
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="profile/bookings" options={{ title: 'My Bookings' }} />
+            <Stack.Screen name="turf/[turfId]" options={{ title: 'Turf Details' }} />
+            <Stack.Screen
+              name="turf/[turfId]/ground/[groundId]"
+              options={{ title: 'Slots' }}
+            />
+            <Stack.Screen
+              name="turf/[turfId]/ground/[groundId]/book"
+              options={{ title: 'Book' }}
+            />
+            <Stack.Screen
+              name="turf/[turfId]/ground/[groundId]/success"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
           </Stack>
           <StatusBar style="dark" />
         </AuthProvider>

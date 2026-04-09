@@ -9,14 +9,14 @@ export default function MyBookingsScreen() {
   const bookingsQuery = useMyBookingsQuery(true);
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['left', 'right', 'bottom']}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-5 px-5 py-5"
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-1">
-          <Text className="text-3xl font-bold text-slate-900">My Bookings</Text>
+          {/* <Text className="text-3xl font-bold text-slate-900">My Bookings</Text> */}
           <Text className="text-sm leading-6 text-slate-600">
             All your confirmed bookings in one place.
           </Text>
