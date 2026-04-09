@@ -4,14 +4,13 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { Button } from '@/src/components/Button';
+import { AuthBrandHeader } from '@/src/components/AuthBrandHeader';
+import { AuthButton } from '@/src/components/AuthButton';
 import { TextField } from '@/src/components/TextField';
 import { useAuth } from '@/src/context/AuthContext';
 import { useLoginMutation } from '@/src/hooks/use-auth';
@@ -42,17 +41,14 @@ export default function LoginScreen() {
           try {
             await signIn(data);
             router.replace('/(tabs)');
-          } catch (error) {
-            Alert.alert(
-              'Could not finish login',
-              error instanceof Error ? error.message : 'Please try again.',
-            );
+          } catch {
+            Alert.alert('Error', 'Could not complete sign in.');
           }
         },
         onError: (error) => {
           Alert.alert(
-            'Login failed',
-            error instanceof Error ? error.message : 'Please try again.',
+            'Login Failed',
+            error instanceof Error ? error.message : 'Try again.',
           );
         },
       },
@@ -60,63 +56,53 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView
-          bounces={false}
-          className="flex-1"
-          contentContainerClassName="flex-grow justify-center gap-7 px-5 py-7"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 60,
+          }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="gap-2">
-            <Text className="text-[15px] font-bold text-teal-700">Tikito</Text>
-            <Text className="text-[34px] font-bold leading-10 text-slate-900">
-              Welcome back
-            </Text>
-            <Text className="text-base leading-6 text-slate-600">
-              Sign in to discover turfs, manage bookings, and keep playing.
-            </Text>
-          </View>
+          <AuthBrandHeader subtitle="Book turfs, manage your games, and get on the field faster." />
 
-          <View className="gap-[18px] rounded-3xl bg-white p-5 shadow-sm">
-            <Text className="text-2xl font-bold text-slate-900">Login</Text>
-
+          {/* Form Container */}
+          <View className="w-full">
             <TextField
               autoCapitalize="none"
-              autoCorrect={false}
               keyboardType="email-address"
-              label="Email"
+              label="EMAIL"
               onChangeText={setIdentifier}
-              placeholder="you@example.com"
               value={identifier}
+              className="mb-5"
             />
             <TextField
-              label="Password"
+              label="PASSWORD"
               onChangeText={setPassword}
-              placeholder="Enter your password"
               secureTextEntry
               value={password}
             />
-            <Button
-              loading={loginMutation.isPending}
-              onPress={handleLogin}
-              title="Login"
-            />
 
-            <View className="flex-row items-center justify-center gap-1.5">
-              <Text className="text-sm text-slate-500">
-                Don&apos;t have an account?
-              </Text>
-              <Link asChild href="/(auth)/signup">
-                <Pressable>
-                  <Text className="text-sm font-bold text-teal-700">
-                    Sign up
-                  </Text>
-                </Pressable>
+            <View className="mt-6">
+              <AuthButton
+                loading={loginMutation.isPending}
+                onPress={handleLogin}
+                title="Login"
+              />
+            </View>
+
+            <View className="mt-8 flex-row items-center justify-center">
+              <Text className="text-slate-500 font-medium">New here? </Text>
+              <Link href="/(auth)/signup" asChild>
+                <Text className="font-bold text-emerald-600">
+                  Create an account
+                </Text>
               </Link>
             </View>
           </View>

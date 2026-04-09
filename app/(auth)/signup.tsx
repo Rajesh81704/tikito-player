@@ -4,14 +4,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@/src/components/Button';
+import { AuthBrandHeader } from '@/src/components/AuthBrandHeader';
+import { AuthButton } from '@/src/components/AuthButton';
 import { TextField } from '@/src/components/TextField';
 import { useAuth } from '@/src/context/AuthContext';
 import { useSignupMutation } from '@/src/hooks/use-auth';
@@ -74,75 +74,68 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView
-          bounces={false}
-          className="flex-1"
-          contentContainerClassName="flex-grow justify-center gap-7 px-5 py-7"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 60,
+          }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="gap-2">
-            <Text className="text-[15px] font-bold text-teal-700">Tikito</Text>
-            <Text className="text-[34px] font-bold leading-10 text-slate-900">
-              Create your account
-            </Text>
-            <Text className="text-base leading-6 text-slate-600">
-              Join Tikito to find grounds faster and keep your game schedule in
-              one place.
-            </Text>
-          </View>
-
-          <View className="gap-[18px] rounded-3xl bg-white p-5 shadow-sm">
-            <Text className="text-2xl font-bold text-slate-900">Sign Up</Text>
-
+          <AuthBrandHeader subtitle="Find nearby turfs, book slots instantly, and never miss a game." />
+          <View className="w-full">
             <TextField
-              label="Full name"
+              label="FULL NAME"
               onChangeText={setFullName}
               placeholder="Enter your full name"
               value={fullName}
+              className="mb-5"
             />
             <TextField
               keyboardType="phone-pad"
-              label="Phone number"
+              label="PHONE NUMBER"
               onChangeText={setPhoneNo}
               placeholder="9876543210"
               value={phoneNo}
+              className="mb-5"
             />
             <TextField
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
-              label="Email"
+              label="EMAIL"
               onChangeText={setEmail}
               placeholder="you@example.com"
               value={email}
+              className="mb-5"
             />
             <TextField
-              label="Password"
+              label="PASSWORD"
               onChangeText={setPassword}
-              placeholder="Create a password"
+              placeholder="Choose a strong password"
               secureTextEntry
               value={password}
             />
-            <Button
-              loading={signupMutation.isPending}
-              onPress={handleSignup}
-              title="Create account"
-            />
+            <View className="mt-6">
+              <AuthButton
+                loading={signupMutation.isPending}
+                onPress={handleSignup}
+                title="Create account"
+              />
+            </View>
 
-            <View className="flex-row items-center justify-center gap-1.5">
-              <Text className="text-sm text-slate-500">
-                Already have an account?
+            <View className="mt-8 flex-row items-center justify-center">
+              <Text className="font-medium text-slate-500">
+                Already have an account?{' '}
               </Text>
-              <Link asChild href="/(auth)/login">
-                <Pressable>
-                  <Text className="text-sm font-bold text-teal-700">Login</Text>
-                </Pressable>
+              <Link href="/(auth)/login" asChild>
+                <Text className="font-bold text-emerald-600">Login</Text>
               </Link>
             </View>
           </View>
