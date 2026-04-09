@@ -31,6 +31,8 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="turf/[turfId]" />
             <Stack.Screen name="turf/[turfId]/ground/[groundId]" />
+            <Stack.Screen name="turf/[turfId]/ground/[groundId]/book" />
+            <Stack.Screen name="turf/[turfId]/ground/[groundId]/success" />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="dark" />

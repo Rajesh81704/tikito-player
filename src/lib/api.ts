@@ -70,6 +70,10 @@ export type AvailableSlot = {
   is_peak: boolean;
 };
 
+export type BookSlotPayload = {
+  slot_id: string;
+};
+
 type ApiErrorResponse = {
   error?: string;
   detail?: string;
@@ -164,6 +168,20 @@ export async function fetchAvailableSlots(turfGroundId: string) {
     const { data } = await apiClient.get<AvailableSlot[]>(
       `/users/available-slots/${turfGroundId}`,
     );
+
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function bookSlot(payload: BookSlotPayload) {
+  try {
+    const { data } = await apiClient.post('/users/book', payload);
+
+    if (data?.error) {
+      throw new Error(data.error);
+    }
 
     return data;
   } catch (error) {

@@ -1,8 +1,9 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/src/components/Button';
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
 import { useAvailableSlotsQuery } from '@/src/hooks/use-auth';
 import { type AvailableSlot } from '@/src/lib/api';
@@ -44,11 +45,13 @@ function formatMonthLabel(date: string) {
 
 export default function GroundSlotsScreen() {
   const params = useLocalSearchParams<{
+    turfId?: string;
     groundId?: string;
     groundName?: string;
     turfName?: string;
   }>();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
   const slotsQuery = useAvailableSlotsQuery(
     typeof params.groundId === 'string' ? params.groundId : undefined,
     true,
@@ -73,6 +76,21 @@ export default function GroundSlotsScreen() {
   const activeDate = selectedDate ?? groupedSlots[0]?.date ?? null;
   const activeSlots =
     groupedSlots.find((group) => group.date === activeDate)?.slots ?? [];
+  const selectedSlots = useMemo(
+    () =>
+      (slotsQuery.data ?? []).filter((slot) =>
+        selectedSlotIds.includes(slot.slot_id),
+      ),
+    [selectedSlotIds, slotsQuery.data],
+  );
+
+  const toggleSlot = (slotId: string) => {
+    setSelectedSlotIds((current) =>
+      current.includes(slotId)
+        ? current.filter((currentSlotId) => currentSlotId !== slotId)
+        : [...current, slotId],
+    );
+  };
 
   if (slotsQuery.isLoading) {
     return <FullScreenLoader label="Loading slots..." />;
@@ -82,7 +100,7 @@ export default function GroundSlotsScreen() {
     <SafeAreaView className="flex-1 bg-slate-50">
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-5 px-5 py-5"
+        contentContainerClassName="gap-5 px-5 py-5 pb-28"
         showsVerticalScrollIndicator={false}
       >
         {slotsQuery.isError ? (
@@ -140,9 +158,17 @@ export default function GroundSlotsScreen() {
             </ScrollView>
 
             {activeSlots.map((slot) => (
-              <View
-                className="gap-3 rounded-3xl border border-slate-200 bg-white p-4"
+              <Pressable
+                className={`gap-3 rounded-3xl border p-4 ${
+                  selectedSlotIds.includes(slot.slot_id)
+                    ? 'border-teal-700 bg-teal-50'
+                    : 'border-slate-200 bg-white'
+                }`}
                 key={slot.slot_id}
+                onPress={() => toggleSlot(slot.slot_id)}
+                style={({ pressed }) => ({
+                  opacity: pressed ? 0.92 : 1,
+                })}
               >
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="gap-1">
@@ -164,7 +190,7 @@ export default function GroundSlotsScreen() {
                 <Text className="text-base font-semibold text-slate-900">
                   ₹ {slot.price}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         ) : (
@@ -175,6 +201,30 @@ export default function GroundSlotsScreen() {
           </View>
         )}
       </ScrollView>
+
+      <View className="border-t border-slate-200 bg-white px-5 pb-6 pt-4">
+        <Button
+          disabled={!selectedSlots.length}
+          onPress={() => {
+            router.push({
+              pathname: '/turf/[turfId]/ground/[groundId]/book',
+              params: {
+                turfId: typeof params.turfId === 'string' ? params.turfId : '',
+                groundId:
+                  typeof params.groundId === 'string' ? params.groundId : '',
+                turfName:
+                  typeof params.turfName === 'string' ? params.turfName : '',
+                groundName:
+                  typeof params.groundName === 'string'
+                    ? params.groundName
+                    : '',
+                slots: JSON.stringify(selectedSlots),
+              },
+            });
+          }}
+          title="Continue"
+        />
+      </View>
     </SafeAreaView>
   );
 }
