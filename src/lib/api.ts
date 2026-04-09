@@ -74,6 +74,22 @@ export type BookSlotPayload = {
   slot_id: string;
 };
 
+export type Booking = {
+  booking_id: string;
+  booking_date: string;
+  booking_status: string;
+  is_available: boolean;
+  booked_at: string;
+  start_time: string;
+  end_time: string;
+  price: number;
+  day_of_week: string;
+  ground_name: string;
+  ground_type: string | null;
+  turf_name: string;
+  turf_address: string | null;
+};
+
 type ApiErrorResponse = {
   error?: string;
   detail?: string;
@@ -183,6 +199,15 @@ export async function bookSlot(payload: BookSlotPayload) {
       throw new Error(data.error);
     }
 
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function fetchMyBookings() {
+  try {
+    const { data } = await apiClient.get<Booking[]>('/users/my-bookings');
     return data;
   } catch (error) {
     throw new Error(extractApiErrorMessage(error));

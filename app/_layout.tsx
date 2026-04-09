@@ -29,6 +29,7 @@ export default function RootLayout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="profile/bookings" />
             <Stack.Screen name="turf/[turfId]" />
             <Stack.Screen name="turf/[turfId]/ground/[groundId]" />
             <Stack.Screen name="turf/[turfId]/ground/[groundId]/book" />

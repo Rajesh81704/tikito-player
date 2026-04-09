@@ -7,6 +7,14 @@ import { useAuth } from '@/src/context/AuthContext';
 export default function ProfileScreen() {
   const { logout, user } = useAuth();
 
+  const handleMyBookings = () => {
+    router.push('/profile/bookings');
+  };
+
+  const handleDeleteMyAccount = () => {
+    Alert.alert('Coming Soon.');
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -26,6 +34,16 @@ export default function ProfileScreen() {
         <Text className="text-[15px] text-slate-600">
           Signed in as role: {user?.role ?? 'user'}
         </Text>
+        <Button
+          onPress={handleMyBookings}
+          title="My Bookings"
+          variant="secondary"
+        />
+        <Button
+          onPress={handleDeleteMyAccount}
+          title="Delete My Account"
+          variant="secondary"
+        />
         <Button onPress={handleLogout} title="Logout" variant="secondary" />
       </View>
     </View>

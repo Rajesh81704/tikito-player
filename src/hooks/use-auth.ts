@@ -3,10 +3,12 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   type AvailableSlot,
   bookSlot,
+  type Booking,
   type BookSlotPayload,
   fetchCurrentUser,
   fetchAvailableSlots,
   fetchGroundDetails,
+  fetchMyBookings,
   fetchTurfs,
   type Ground,
   type LoginPayload,
@@ -73,5 +75,14 @@ export function useAvailableSlotsQuery(turfGroundId?: string, enabled = true) {
 export function useBookSlotMutation() {
   return useMutation({
     mutationFn: (payload: BookSlotPayload) => bookSlot(payload),
+  });
+}
+
+export function useMyBookingsQuery(enabled = true) {
+  return useQuery<Booking[]>({
+    queryKey: ['my-bookings'],
+    queryFn: fetchMyBookings,
+    enabled,
+    retry: 1,
   });
 }
