@@ -5,7 +5,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from '@/components/AuthContext';
+
+import { AuthProvider } from '@/src/context/AuthContext';
 
 export default function RootLayout() {
   const [queryClient] = useState(
@@ -13,25 +14,26 @@ export default function RootLayout() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 20_000,
             retry: 1,
+            refetchOnReconnect: true,
           },
         },
       }),
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SafeAreaProvider>
-          <Stack>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(turf)" options={{ headerShown: false }} />
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="dark" />
-        </SafeAreaProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

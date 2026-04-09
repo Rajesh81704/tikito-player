@@ -14,44 +14,58 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/src/components/Button';
 import { TextField } from '@/src/components/TextField';
 import { useAuth } from '@/src/context/AuthContext';
-import { useLoginMutation } from '@/src/hooks/use-auth';
+import { useSignupMutation } from '@/src/hooks/use-auth';
+import { loginUser } from '@/src/lib/api';
 
-export default function LoginScreen() {
+export default function SignupScreen() {
   const { signIn } = useAuth();
-  const loginMutation = useLoginMutation();
-  const [identifier, setIdentifier] = useState('');
+  const signupMutation = useSignupMutation();
+  const [fullName, setFullName] = useState('');
+  const [phoneNo, setPhoneNo] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    if (!identifier.trim() || !password.trim()) {
-      Alert.alert(
-        'Missing details',
-        'Enter your email and password to continue.',
-      );
+  const handleSignup = () => {
+    if (
+      !fullName.trim() ||
+      !phoneNo.trim() ||
+      !email.trim() ||
+      !password.trim()
+    ) {
+      Alert.alert('Missing details', 'Please fill in all signup fields.');
       return;
     }
 
-    loginMutation.mutate(
+    signupMutation.mutate(
       {
-        identifier: identifier.trim(),
+        full_name: fullName.trim(),
+        phone_no: phoneNo.trim(),
+        email: email.trim(),
         password: password.trim(),
-        role: 'user',
       },
       {
-        onSuccess: async (data) => {
+        onSuccess: async (_, variables) => {
           try {
-            await signIn(data);
+            const authData = await loginUser({
+              identifier: variables.email,
+              password: variables.password,
+              role: 'user',
+            });
+
+            await signIn(authData);
             router.replace('/(tabs)');
           } catch (error) {
             Alert.alert(
-              'Could not finish login',
-              error instanceof Error ? error.message : 'Please try again.',
+              'Account created, but login failed',
+              error instanceof Error
+                ? error.message
+                : 'Please log in with your new account.',
             );
           }
         },
         onError: (error) => {
           Alert.alert(
-            'Login failed',
+            'Signup failed',
             error instanceof Error ? error.message : 'Please try again.',
           );
         },
@@ -77,47 +91,59 @@ export default function LoginScreen() {
               Tikito Player
             </Text>
             <Text className="text-[34px] font-bold leading-10 text-slate-900">
-              Welcome back
+              Create your account
             </Text>
             <Text className="text-base leading-6 text-slate-600">
-              Sign in to discover turfs, manage bookings, and keep playing.
+              Join Tikito to find grounds faster and keep your game schedule in
+              one place.
             </Text>
           </View>
 
           <View className="gap-[18px] rounded-3xl bg-white p-5 shadow-sm">
-            <Text className="text-2xl font-bold text-slate-900">Login</Text>
+            <Text className="text-2xl font-bold text-slate-900">Sign Up</Text>
 
+            <TextField
+              label="Full name"
+              onChangeText={setFullName}
+              placeholder="Enter your full name"
+              value={fullName}
+            />
+            <TextField
+              keyboardType="phone-pad"
+              label="Phone number"
+              onChangeText={setPhoneNo}
+              placeholder="9876543210"
+              value={phoneNo}
+            />
             <TextField
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
               label="Email"
-              onChangeText={setIdentifier}
+              onChangeText={setEmail}
               placeholder="you@example.com"
-              value={identifier}
+              value={email}
             />
             <TextField
               label="Password"
               onChangeText={setPassword}
-              placeholder="Enter your password"
+              placeholder="Create a password"
               secureTextEntry
               value={password}
             />
             <Button
-              loading={loginMutation.isPending}
-              onPress={handleLogin}
-              title="Login"
+              loading={signupMutation.isPending}
+              onPress={handleSignup}
+              title="Create account"
             />
 
             <View className="flex-row items-center justify-center gap-1.5">
               <Text className="text-sm text-slate-500">
-                Don&apos;t have an account?
+                Already have an account?
               </Text>
-              <Link asChild href="/(auth)/signup">
+              <Link asChild href="/(auth)/login">
                 <Pressable>
-                  <Text className="text-sm font-bold text-teal-700">
-                    Sign up
-                  </Text>
+                  <Text className="text-sm font-bold text-teal-700">Login</Text>
                 </Pressable>
               </Link>
             </View>
