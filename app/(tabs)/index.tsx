@@ -5,14 +5,15 @@ import { isAfter, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
-
+import { Pressable } from 'react-native';
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
 import { BookingCard } from '@/src/components/BookingCard';
 import { LocationPermissionModal } from '@/src/components/LocationPermissionModal';
-import { TurfCard } from '@/src/components/TurfCard';
+import { HomeHero } from '@/src/components/HomeHero';
 import { useMyBookingsQuery, useTurfsQuery } from '@/src/hooks/use-auth';
 import { useStoredLocation } from '@/src/hooks/use-stored-location';
 import { setStoredLocation } from '@/src/lib/storage';
+import { HomeTurfCard } from '@/src/components/HomeTurfCard';
 
 const LOCATION_TIMEOUT_MS = 10000;
 const HOME_STATUS_BAR_SPACING = Constants.statusBarHeight || 16;
@@ -122,125 +123,152 @@ export default function HomeScreen() {
   return (
     <>
       {isWaitingForLocation ? (
-        <View
-          className="flex-1 items-center justify-center gap-3 bg-white px-5"
-          style={{ paddingTop: HOME_STATUS_BAR_SPACING }}
-        >
-          <ActivityIndicator color="#0F766E" size="large" />
-          <Text className="text-base font-medium text-slate-600">
-            Waiting for location access...
+        <View className="flex-1 items-center justify-center gap-3 bg-white px-5">
+          <ActivityIndicator color="#10b981" size="large" />
+          <Text className="text-base font-bold text-slate-400 uppercase tracking-widest">
+            Locating...
           </Text>
         </View>
       ) : (
-        <ScrollView
-          className="flex-1 bg-white"
-          contentContainerClassName="gap-5 px-5 pb-5"
-          contentContainerStyle={{ paddingTop: HOME_STATUS_BAR_SPACING }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="gap-1">
-            <Text className="text-3xl font-bold text-slate-900">Home</Text>
-            {location ? (
-              <View className="flex-row items-center gap-1.5">
-                <Ionicons color="#0F766E" name="location-sharp" size={14} />
-                <Text className="text-sm font-medium text-slate-500">
-                  {location.city}
-                </Text>
-              </View>
-            ) : null}
-            <Text className="text-base leading-6 text-slate-600">
-              Discover turf options curated for your current city.
-            </Text>
+        <View className="flex-1 bg-white">
+          {/* Fixed Header */}
+          <View
+            style={{ paddingTop: HOME_STATUS_BAR_SPACING }}
+            className="bg-white px-5 pb-4 border-b border-slate-100"
+          >
+            <View className="flex-row items-center justify-between">
+              <Text className="text-3xl font-black tracking-tighter text-emerald-600">
+                Tikito.
+              </Text>
+
+              {location && (
+                <View className="flex-row items-center">
+                  <Ionicons name="location-sharp" size={14} color="#10b981" />
+                  <Text className="ml-1 text-sm font-medium text-slate-800">
+                    {location.city}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
-          {!location ? (
-            <View className="rounded-3xl border border-dashed border-slate-300 bg-white px-5 py-6">
-              <Text className="text-base font-semibold text-slate-900">
-                Turn on location to load nearby city turfs.
-              </Text>
-            </View>
-          ) : turfsQuery.isLoading ? (
-            <FullScreenLoader label="Loading turfs for your city..." />
-          ) : turfsQuery.isError ? (
-            <View className="rounded-3xl bg-rose-50 px-5 py-6">
-              <Text className="text-base font-semibold text-rose-700">
-                {turfsQuery.error instanceof Error
-                  ? turfsQuery.error.message
-                  : 'Could not load turfs for your city.'}
-              </Text>
-            </View>
-          ) : turfsQuery.data?.length ? (
-            <View className="gap-4">
-              {turfsQuery.data.map((turf) => (
-                <TurfCard
-                  key={turf.turf_field_id}
-                  onPress={() => {
-                    router.push({
-                      pathname: '/turf/[turfId]',
-                      params: {
-                        turfId: turf.turf_field_id,
-                        turf: JSON.stringify(turf),
-                      },
-                    });
-                  }}
-                  turf={turf}
-                />
-              ))}
-            </View>
-          ) : (
-            <View className="rounded-3xl border border-slate-200 bg-white px-5 py-6">
-              <Text className="text-base font-semibold text-slate-900">
-                No turfs found in {location.city}.
-              </Text>
-            </View>
-          )}
-
-          <View className="gap-3">
-            <View className="gap-1">
-              <Text className="text-2xl font-bold text-slate-900">
-                Upcoming bookings
-              </Text>
-              <Text className="text-sm leading-6 text-slate-600">
-                Your upcoming confirmed bookings will appear here.
-              </Text>
+          <ScrollView
+            className="flex-1 bg-white"
+            contentContainerStyle={{
+              paddingBottom: 40,
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View className="px-5 mt-4">
+              <HomeHero />
             </View>
 
-            {bookingsQuery.isLoading ? (
-              <FullScreenLoader label="Loading your bookings..." />
-            ) : bookingsQuery.isError ? (
-              <View className="rounded-3xl bg-rose-50 px-5 py-6">
-                <Text className="text-base font-semibold text-rose-700">
-                  {bookingsQuery.error instanceof Error
-                    ? bookingsQuery.error.message
-                    : 'Could not load your bookings.'}
+            {/* Nearby Turfs Section */}
+            <View className="mt-8">
+              <View className="px-5 mb-4 flex-row items-center justify-between">
+                <Text className="text-xl font-black tracking-tight text-slate-900">
+                  Explore Nearby Turfs
                 </Text>
+                <Pressable onPress={() => router.push('/(tabs)/discover')}>
+                  <Text className="text-sm font-bold text-emerald-600">
+                    View All
+                  </Text>
+                </Pressable>
               </View>
-            ) : upcomingBookings.length ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerClassName="gap-4 pr-5"
-              >
-                {upcomingBookings.map((booking) => (
-                  <BookingCard
-                    booking={booking}
-                    className="w-[270px]"
-                    key={booking.booking_id}
-                  />
-                ))}
-              </ScrollView>
-            ) : (
-              <View className="rounded-3xl border border-dashed border-slate-300 bg-white px-5 py-8">
-                <Text className="text-center text-base font-semibold text-slate-900">
-                  No upcoming bookings
+
+              {!location ? (
+                <View className="mx-5 rounded-3xl border-2 border-dashed border-slate-100 py-10 items-center justify-center">
+                  <Ionicons name="map-outline" size={32} color="#cbd5e1" />
+                  <Text className="mt-2 text-sm font-bold text-slate-400">
+                    Enable location to see nearby turfs
+                  </Text>
+                </View>
+              ) : turfsQuery.isLoading ? (
+                <ActivityIndicator color="#10b981" className="py-10" />
+              ) : turfsQuery.data?.length === 0 ? (
+                <View className="mx-5 rounded-3xl border-2 border-dashed border-slate-100 py-10 items-center justify-center">
+                  <Ionicons name="football-outline" size={32} color="#cbd5e1" />
+                  <Text className="mt-2 text-sm font-bold text-slate-500">
+                    No turfs available in your area
+                  </Text>
+                  <Text className="text-xs text-slate-400 mt-1">
+                    Try exploring nearby cities
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView
+                  horizontal
+                  nestedScrollEnabled
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20 }}
+                >
+                  {turfsQuery.data?.map((turf, index) => (
+                    <View
+                      key={turf.turf_field_id}
+                      style={{
+                        width: 280,
+                        marginRight:
+                          index === turfsQuery.data.length - 1 ? 0 : 16,
+                      }}
+                    >
+                      <HomeTurfCard
+                        turf={turf}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/turf/[turfId]',
+                            params: {
+                              turfId: turf.turf_field_id,
+                              turf: JSON.stringify(turf),
+                            },
+                          })
+                        }
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+
+            {/* Upcoming Bookings Section */}
+            <View className="mt-10">
+              <View className="px-5 mb-4 flex-row items-center justify-between">
+                <Text className="text-xl font-black tracking-tight text-slate-900">
+                  Your Schedule
                 </Text>
-                <Text className="mt-2 text-center text-sm leading-6 text-slate-500">
-                  Once you book a future slot, it will show up here.
-                </Text>
+                <Pressable onPress={() => router.push('/profile/bookings')}>
+                  <Text className="text-sm font-bold text-emerald-600">
+                    View Bookings
+                  </Text>
+                </Pressable>
               </View>
-            )}
-          </View>
-        </ScrollView>
+
+              {bookingsQuery.isLoading ? (
+                <ActivityIndicator color="#10b981" className="py-10" />
+              ) : upcomingBookings.length ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}
+                >
+                  {upcomingBookings.map((booking) => (
+                    <View key={booking.booking_id} style={{ width: 280 }}>
+                      <BookingCard booking={booking} />
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : (
+                <View className="mx-5 rounded-[32px] bg-slate-50 p-8 items-center border border-slate-100">
+                  <Text className="text-base font-bold text-slate-900">
+                    No upcoming games
+                  </Text>
+                  <Text className="text-sm text-slate-500 mt-1">
+                    Book your first match today!
+                  </Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </View>
       )}
 
       <LocationPermissionModal
