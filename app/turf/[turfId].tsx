@@ -104,7 +104,7 @@ export default function TurfDetailsScreen() {
               Select Your Ground
             </Text>
             <Text className="text-sm leading-6 text-slate-500">
-              Tap any ground to explore upcoming booking flows.
+              Tap any ground to explore upcoming slots.
             </Text>
           </View>
 
