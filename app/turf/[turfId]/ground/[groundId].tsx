@@ -3,22 +3,12 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@/src/components/Button';
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
 import { useAvailableSlotsQuery } from '@/src/hooks/use-auth';
-import { type AvailableSlot } from '@/src/lib/api';
+import type { AvailableSlot } from '@/src/lib/api';
 
 function formatTime(value: string) {
   return value.slice(0, 5);
-}
-
-function formatDateLabel(date: string) {
-  const parsedDate = new Date(`${date}T00:00:00`);
-
-  return parsedDate.toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-  });
 }
 
 function formatDayLabel(dayOfWeek: string) {
@@ -76,6 +66,10 @@ export default function GroundSlotsScreen() {
   const activeDate = selectedDate ?? groupedSlots[0]?.date ?? null;
   const activeSlots =
     groupedSlots.find((group) => group.date === activeDate)?.slots ?? [];
+  const basePriceSlot = useMemo(
+    () => (slotsQuery.data ?? []).find((slot) => !slot.is_peak) ?? null,
+    [slotsQuery.data],
+  );
   const selectedSlots = useMemo(
     () =>
       (slotsQuery.data ?? []).filter((slot) =>
@@ -97,14 +91,17 @@ export default function GroundSlotsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50" edges={['left', 'right', 'bottom']}>
+    <SafeAreaView
+      className="flex-1 bg-white"
+      edges={['left', 'right', 'bottom']}
+    >
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-5 px-5 pb-28 pt-2"
+        contentContainerClassName="gap-4 px-5 pb-28 pt-3"
         showsVerticalScrollIndicator={false}
       >
         {slotsQuery.isError ? (
-          <View className="rounded-3xl bg-rose-50 px-5 py-6">
+          <View className="rounded-[24px] bg-rose-50 px-5 py-5">
             <Text className="text-base font-semibold text-rose-700">
               {slotsQuery.error instanceof Error
                 ? slotsQuery.error.message
@@ -113,41 +110,62 @@ export default function GroundSlotsScreen() {
           </View>
         ) : groupedSlots.length ? (
           <View className="gap-4">
+            <View className="flex-row items-center justify-between gap-3">
+              <Text className="flex-1 text-[26px] font-black tracking-tight text-emerald-600">
+                {typeof params.groundName === 'string'
+                  ? params.groundName
+                  : 'Select Slot'}
+              </Text>
+              {basePriceSlot ? (
+                <View className="rounded-xl bg-emerald-50 px-3 py-2">
+                  <Text className="text-xl font-black tracking-tight text-emerald-600">
+                    ₹ {basePriceSlot.price}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <Text className="px-1 text-sm font-semibold text-slate-500">
+              Choose your preferred date
+            </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerClassName="pr-5"
+              contentContainerClassName="pr-4"
             >
               {groupedSlots.map((group) => {
                 const isActive = activeDate === group.date;
 
                 return (
                   <Pressable
-                    className={`mr-3 h-[94px] w-[72px] items-center justify-center rounded-[20px] border ${
+                    className={`mr-3 h-[88px] w-[70px] items-center justify-center rounded-2xl border ${
                       isActive
-                        ? 'border-teal-700 bg-teal-700'
+                        ? 'border-emerald-600 bg-emerald-600'
                         : 'border-slate-200 bg-white'
                     }`}
                     key={group.date}
                     onPress={() => setSelectedDate(group.date)}
+                    style={({ pressed }) => ({
+                      transform: [{ scale: pressed ? 0.98 : 1 }],
+                    })}
                   >
                     <Text
-                      className={`text-xs font-medium tracking-[1px] ${
-                        isActive ? 'text-white' : 'text-slate-500'
+                      className={`text-[11px] font-bold tracking-[1px] ${
+                        isActive ? 'text-white/90' : 'text-slate-500'
                       }`}
                     >
                       {formatDayLabel(group.dayOfWeek)}
                     </Text>
                     <Text
-                      className={`mt-3 text-2xl font-bold ${
+                      className={`mt-2 text-[24px] font-black ${
                         isActive ? 'text-white' : 'text-slate-900'
                       }`}
                     >
                       {formatDateNumber(group.date)}
                     </Text>
                     <Text
-                      className={`mt-2 text-xs tracking-[1px] ${
-                        isActive ? 'text-white/90' : 'text-slate-400'
+                      className={`mt-1 text-[11px] font-semibold tracking-[1px] ${
+                        isActive ? 'text-white/80' : 'text-slate-400'
                       }`}
                     >
                       {formatMonthLabel(group.date)}
@@ -157,44 +175,54 @@ export default function GroundSlotsScreen() {
               })}
             </ScrollView>
 
-            {activeSlots.map((slot) => (
-              <Pressable
-                className={`gap-3 rounded-3xl border p-4 ${
-                  selectedSlotIds.includes(slot.slot_id)
-                    ? 'border-teal-700 bg-teal-50'
-                    : 'border-slate-200 bg-white'
-                }`}
-                key={slot.slot_id}
-                onPress={() => toggleSlot(slot.slot_id)}
-                style={({ pressed }) => ({
-                  opacity: pressed ? 0.92 : 1,
-                })}
-              >
-                <View className="flex-row items-start justify-between gap-3">
-                  <View className="gap-1">
-                    <Text className="text-lg font-bold text-slate-900">
-                      {formatTime(slot.start_time)} -{' '}
-                      {formatTime(slot.end_time)}
-                    </Text>
+            <Text className="px-1 text-sm font-semibold text-slate-500">
+              Choose your preferred timings
+            </Text>
+            <View className="-mx-1.5 flex-row flex-wrap">
+              {activeSlots.map((slot) => {
+                const isSelected = selectedSlotIds.includes(slot.slot_id);
+
+                return (
+                  <View className="mb-3 w-1/2 px-1.5" key={slot.slot_id}>
+                    <Pressable
+                      className={`rounded-xl border px-3 py-3 ${
+                        isSelected
+                          ? 'border-emerald-600 bg-emerald-50'
+                          : 'border-slate-200 bg-white'
+                      }`}
+                      onPress={() => toggleSlot(slot.slot_id)}
+                      style={({ pressed }) => ({
+                        transform: [{ scale: pressed ? 0.99 : 1 }],
+                        opacity: pressed ? 0.96 : 1,
+                      })}
+                    >
+                      <View className="gap-2">
+                        {slot.is_peak ? (
+                          <View className="self-start rounded-full bg-amber-50 px-2.5 py-1">
+                            <Text className="text-[10px] font-bold uppercase tracking-[0.6px] text-amber-700">
+                              Peak
+                            </Text>
+                          </View>
+                        ) : null}
+
+                        <Text className="text-[15px] font-black tracking-tight text-slate-700">
+                          {formatTime(slot.start_time)} -{' '}
+                          {formatTime(slot.end_time)}
+                        </Text>
+                        {slot.is_peak ? (
+                          <Text className="text-sm font-semibold text-slate-700">
+                            ₹ {slot.price}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </Pressable>
                   </View>
-
-                  {slot.is_peak ? (
-                    <View className="rounded-full bg-amber-50 px-3 py-1.5">
-                      <Text className="text-xs font-semibold uppercase tracking-[0.5px] text-amber-700">
-                        Peak
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-
-                <Text className="text-base font-semibold text-slate-900">
-                  ₹ {slot.price}
-                </Text>
-              </Pressable>
-            ))}
+                );
+              })}
+            </View>
           </View>
         ) : (
-          <View className="rounded-3xl border border-slate-200 bg-white px-5 py-6">
+          <View className="rounded-[24px] border border-emerald-100 bg-emerald-50/40 px-5 py-6">
             <Text className="text-base font-semibold text-slate-900">
               No slots available for this ground.
             </Text>
@@ -202,8 +230,12 @@ export default function GroundSlotsScreen() {
         )}
       </ScrollView>
 
-      <View className="border-t border-slate-200 bg-white px-5 pb-6 pt-4">
-        <Button
+      <View className="border-t border-slate-100 bg-white px-5 pb-6 pt-4">
+        <Pressable
+          accessibilityRole="button"
+          className={`min-h-[56px] flex-row items-center justify-between rounded-2xl px-5 ${
+            selectedSlots.length ? 'bg-emerald-600' : 'bg-slate-300'
+          }`}
           disabled={!selectedSlots.length}
           onPress={() => {
             router.push({
@@ -222,8 +254,46 @@ export default function GroundSlotsScreen() {
               },
             });
           }}
-          title="Continue"
-        />
+          style={({ pressed }) => ({
+            transform: [{ scale: pressed && selectedSlots.length ? 0.99 : 1 }],
+            opacity: selectedSlots.length ? (pressed ? 0.96 : 1) : 1,
+          })}
+        >
+          <View>
+            <Text
+              className={`text-base font-black tracking-tight ${
+                selectedSlots.length ? 'text-white' : 'text-slate-500'
+              }`}
+            >
+              Continue
+            </Text>
+            <Text
+              className={`text-xs font-semibold ${
+                selectedSlots.length ? 'text-emerald-50' : 'text-slate-500'
+              }`}
+            >
+              {selectedSlots.length
+                ? `${selectedSlots.length} slot${
+                    selectedSlots.length === 1 ? '' : 's'
+                  } selected`
+                : 'Select at least one slot'}
+            </Text>
+          </View>
+
+          <View
+            className={`h-9 w-9 items-center justify-center rounded-full ${
+              selectedSlots.length ? 'bg-white/20' : 'bg-slate-200'
+            }`}
+          >
+            <Text
+              className={`text-lg font-black ${
+                selectedSlots.length ? 'text-white' : 'text-slate-500'
+              }`}
+            >
+              →
+            </Text>
+          </View>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
