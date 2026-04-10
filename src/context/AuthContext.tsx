@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   type PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -28,6 +29,7 @@ type AuthContextValue = {
   isHydrating: boolean;
   signIn: (authData: AuthResponse) => Promise<void>;
   logout: () => Promise<void>;
+  clearSession: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -38,21 +40,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
 
-  useEffect(() => {
-    async function resetAuthState() {
-      await clearStoredToken();
-      await clearStoredLocation();
-      setToken(null);
-      setUser(null);
-      queryClient.clear();
-    }
+  const clearSession = useCallback(async () => {
+    await clearStoredToken();
+    await clearStoredLocation();
+    setToken(null);
+    setUser(null);
+    queryClient.clear();
+  }, [queryClient]);
 
-    setUnauthorizedHandler(resetAuthState);
+  useEffect(() => {
+    setUnauthorizedHandler(clearSession);
 
     return () => {
       setUnauthorizedHandler(null);
     };
-  }, [queryClient]);
+  }, [clearSession]);
 
   useEffect(() => {
     async function hydrateSession() {
@@ -92,11 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     try {
       await logoutUser();
     } finally {
-      await clearStoredToken();
-      await clearStoredLocation();
-      setToken(null);
-      setUser(null);
-      queryClient.clear();
+      await clearSession();
     }
   };
 
@@ -107,6 +105,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     isHydrating,
     signIn,
     logout,
+    clearSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

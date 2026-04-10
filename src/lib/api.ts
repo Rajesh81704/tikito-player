@@ -21,9 +21,13 @@ export type AuthResponse = {
 };
 
 export type AuthUser = {
-  sub: string;
-  role: string;
-  exp?: number;
+  user_id: string;
+  full_name: string;
+  phone_no: string;
+  email: string;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
 };
 
 export type Turf = {
@@ -149,6 +153,15 @@ export async function fetchCurrentUser() {
 export async function logoutUser() {
   try {
     const { data } = await apiClient.post('/auth/logout');
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function deleteMyAccount() {
+  try {
+    const { data } = await apiClient.delete('/users/me');
     return data;
   } catch (error) {
     throw new Error(extractApiErrorMessage(error));

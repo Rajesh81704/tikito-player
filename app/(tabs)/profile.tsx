@@ -1,12 +1,35 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import type { ComponentProps } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
+import { useCurrentUserQuery } from '@/src/hooks/use-auth';
+import { useStoredLocation } from '@/src/hooks/use-stored-location';
+import { deleteMyAccount } from '@/src/lib/api';
 
 export default function ProfileScreen() {
-  const { logout } = useAuth();
+  const { logout, clearSession } = useAuth();
+  const { data: me } = useCurrentUserQuery();
+  const { location } = useStoredLocation();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const initials = useMemo(() => {
+    const name = me?.full_name?.trim();
+
+    if (!name) {
+      return 'NA';
+    }
+
+    const parts = name.split(/\s+/).filter(Boolean);
+
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+  }, [me?.full_name]);
 
   const handleLogout = async () => {
     Alert.alert('Logout', 'Are you sure you want to sign out?', [
@@ -26,6 +49,42 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleDeleteAccount = async () => {
+    if (isDeleting) {
+      return;
+    }
+
+    Alert.alert(
+      'Delete Account',
+      'This action is permanent. Are you sure you want to delete your account?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsDeleting(true);
+              await deleteMyAccount();
+              await clearSession();
+              router.replace('/(auth)/login');
+              Alert.alert('Account Deleted', 'Your account has been deleted.');
+            } catch (error) {
+              Alert.alert(
+                'Error',
+                error instanceof Error
+                  ? error.message
+                  : 'Delete account failed.',
+              );
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -37,27 +96,27 @@ export default function ProfileScreen() {
               className="text-center text-4xl font-black tracking-tighter text-emerald-800 leading-none"
               style={{ includeFontPadding: false }}
             >
-              VN
+              {initials}
             </Text>
           </View>
 
           <Text className="mt-6 text-3xl font-black tracking-tight text-slate-900">
-            Vivek Nair
+            {me?.full_name ?? 'User'}
           </Text>
 
           <View className="mt-2 items-center">
             <Text className="text-slate-500 text-base font-medium">
-              viveknair@gmail.com
+              {me?.email ?? 'No email'}
             </Text>
             <Text className="text-slate-400 text-sm mt-0.5">
-              +91 9876543210
+              {me?.phone_no ?? 'No phone number'}
             </Text>
           </View>
 
           <View className="mt-4 flex-row items-center bg-emerald-50 px-4 py-1.5 rounded-full">
             <Ionicons name="location-sharp" size={14} color="#059669" />
             <Text className="ml-1.5 text-xs font-bold text-emerald-700">
-              Gurgaon, Haryana
+              {location?.city ?? 'Location unavailable'}
             </Text>
           </View>
         </View>
@@ -73,7 +132,7 @@ export default function ProfileScreen() {
 
           <OptionButton
             title="Delete My Account"
-            onPress={() => Alert.alert('Coming Soon.')}
+            onPress={handleDeleteAccount}
             icon="trash"
             color="#ef4444"
           />
