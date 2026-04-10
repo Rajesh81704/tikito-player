@@ -1,63 +1,90 @@
 import { router } from 'expo-router';
-import { ScrollView, Text, View } from 'react-native';
+import { useState, useMemo } from 'react';
+import { FlatList, Text, View, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
-import { TurfCard } from '@/src/components/TurfCard';
+import { TurfFieldCard } from '@/src/components/TurfFieldCard';
 import { useTurfsQuery } from '@/src/hooks/use-auth';
 
 export default function DiscoverScreen() {
   const turfsQuery = useTurfsQuery('', true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredTurfs = useMemo(() => {
+    if (!turfsQuery.data) return [];
+    const query = searchQuery.toLowerCase();
+    return turfsQuery.data.filter(
+      (turf) =>
+        turf.turf_name.toLowerCase().includes(query) ||
+        (turf.turf_location &&
+          turf.turf_location.toLowerCase().includes(query)),
+    );
+  }, [searchQuery, turfsQuery.data]);
 
   if (turfsQuery.isLoading) {
-    return <FullScreenLoader label="Loading all turfs..." />;
+    return <FullScreenLoader label="Finding the best turfs..." />;
   }
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerClassName="gap-5 px-5 py-5"
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="gap-2">
-        <Text className="text-3xl font-bold text-slate-900">Discover</Text>
-        <Text className="text-base leading-6 text-slate-600">
-          Browse all available turfs across cities.
-        </Text>
+    <SafeAreaView className="flex-1 bg-white" edges={['left', 'right']}>
+      {/* Search Header */}
+      <View className="p-4">
+        <View className="flex-row items-center h-14 px-4 rounded-2xl bg-slate-100 border border-slate-200">
+          <Ionicons name="search" size={20} color="#64748b" />
+          <TextInput
+            placeholder="Search by name or city..."
+            placeholderTextColor="#94a3b8"
+            className="flex-1 ml-3 text-base text-slate-900"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCorrect={false}
+          />
+        </View>
       </View>
 
       {turfsQuery.isError ? (
-        <View className="rounded-3xl bg-rose-50 px-5 py-6">
-          <Text className="text-base font-semibold text-rose-700">
-            {turfsQuery.error instanceof Error
-              ? turfsQuery.error.message
-              : 'Could not load turfs.'}
+        <View className="mx-4 rounded-3xl bg-rose-50 p-6">
+          <Text className="text-base font-bold text-rose-700">
+            Error loading turfs.
           </Text>
         </View>
-      ) : turfsQuery.data?.length ? (
-        <View className="gap-4">
-          {turfsQuery.data.map((turf) => (
-            <TurfCard
-              key={turf.turf_field_id}
+      ) : (
+        <FlatList
+          data={filteredTurfs}
+          keyExtractor={(item) => item.turf_field_id}
+          numColumns={2}
+          showsVerticalScrollIndicator={false}
+          // Parent Padding (16px)
+          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+          // Horizontal Gap (16px)
+          columnWrapperStyle={{ gap: 16 }}
+          // Vertical Gap (16px)
+          ItemSeparatorComponent={() => <View className="h-4" />}
+          renderItem={({ item }) => (
+            <TurfFieldCard
+              turf={item}
               onPress={() => {
                 router.push({
                   pathname: '/turf/[turfId]',
                   params: {
-                    turfId: turf.turf_field_id,
-                    turf: JSON.stringify(turf),
+                    turfId: item.turf_field_id,
+                    turf: JSON.stringify(item),
                   },
                 });
               }}
-              turf={turf}
             />
-          ))}
-        </View>
-      ) : (
-        <View className="rounded-3xl border border-slate-200 bg-white px-5 py-6">
-          <Text className="text-base font-semibold text-slate-900">
-            No turfs available right now.
-          </Text>
-        </View>
+          )}
+          ListEmptyComponent={
+            <View className="mt-20 items-center justify-center">
+              <Text className="text-lg font-black text-slate-900">
+                No turfs found
+              </Text>
+            </View>
+          }
+        />
       )}
-    </ScrollView>
+    </SafeAreaView>
   );
 }

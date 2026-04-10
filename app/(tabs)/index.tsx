@@ -123,7 +123,7 @@ export default function HomeScreen() {
     <>
       {isWaitingForLocation ? (
         <View
-          className="flex-1 items-center justify-center gap-3 bg-slate-50 px-5"
+          className="flex-1 items-center justify-center gap-3 bg-white px-5"
           style={{ paddingTop: HOME_STATUS_BAR_SPACING }}
         >
           <ActivityIndicator color="#0F766E" size="large" />
@@ -133,7 +133,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <ScrollView
-          className="flex-1"
+          className="flex-1 bg-white"
           contentContainerClassName="gap-5 px-5 pb-5"
           contentContainerStyle={{ paddingTop: HOME_STATUS_BAR_SPACING }}
           showsVerticalScrollIndicator={false}
@@ -224,7 +224,7 @@ export default function HomeScreen() {
                 {upcomingBookings.map((booking) => (
                   <BookingCard
                     booking={booking}
-                    className="w-[280px]"
+                    className="w-[270px]"
                     key={booking.booking_id}
                   />
                 ))}

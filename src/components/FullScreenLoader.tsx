@@ -8,7 +8,7 @@ export function FullScreenLoader({
   label = 'Loading...',
 }: FullScreenLoaderProps) {
   return (
-    <View className="flex-1 items-center justify-center gap-3 bg-slate-50 px-6">
+    <View className="flex-1 items-center justify-center gap-3 bg-white px-6">
       <ActivityIndicator color="#0F766E" size="large" />
       <Text className="text-[15px] text-slate-600">{label}</Text>
     </View>
