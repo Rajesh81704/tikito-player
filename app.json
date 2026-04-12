@@ -17,7 +17,8 @@
         {
           "locationWhenInUsePermission": "Allow Tikito to access your location so we can show turfs in your city."
         }
-      ]
+      ],
+      "./plugins/withAdiRegistration"
     ],
     "experiments": {
       "typedRoutes": true,
