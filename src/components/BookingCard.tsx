@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { format, parseISO } from 'date-fns';
+import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Booking } from '@/src/lib/api';
 
@@ -24,12 +25,41 @@ export function BookingCard({ booking, className }: BookingCardProps) {
   const startTime = booking.start_time.split('.')[0].slice(0, 5);
   const endTime = booking.end_time.split('.')[0].slice(0, 5);
 
-  const isConfirmed = booking.booking_status === 'CONFIRMED';
+  const paymentStatus = booking.payment_status || 'PENDING';
+  const isConfirmed = booking.booking_status === 'CONFIRMED' && paymentStatus === 'PAID';
+  const isPending = paymentStatus === 'PENDING';
+  const isFailed = paymentStatus === 'FAILED';
+
+  const statusLabel = isConfirmed
+    ? 'CONFIRMED'
+    : isFailed
+      ? 'FAILED'
+      : isPending
+        ? 'PAYMENT PENDING'
+        : booking.booking_status;
+
+  const statusBgClass = isConfirmed
+    ? 'bg-emerald-50'
+    : isFailed
+      ? 'bg-rose-50'
+      : 'bg-amber-50';
+
+  const statusTextClass = isConfirmed
+    ? 'text-emerald-700'
+    : isFailed
+      ? 'text-rose-700'
+      : 'text-amber-700';
 
   return (
     <Pressable
       className={`mb-4 overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm ${className}`}
       style={({ pressed }) => ({ opacity: pressed ? 0.95 : 1 })}
+      onPress={() =>
+        router.push({
+          pathname: '/profile/booking-detail',
+          params: { booking: JSON.stringify(booking) },
+        })
+      }
     >
       <View className="p-5">
         {/* Header: Ground Name & Status */}
@@ -50,16 +80,12 @@ export function BookingCard({ booking, className }: BookingCardProps) {
           </View>
 
           <View
-            className={`rounded-full px-3 py-1 ${
-              isConfirmed ? 'bg-emerald-50' : 'bg-amber-50'
-            }`}
+            className={`rounded-full px-3 py-1 ${statusBgClass}`}
           >
             <Text
-              className={`text-[10px] font-bold uppercase tracking-widest ${
-                isConfirmed ? 'text-emerald-700' : 'text-amber-700'
-              }`}
+              className={`text-[10px] font-bold uppercase tracking-widest ${statusTextClass}`}
             >
-              {booking.booking_status}
+              {statusLabel}
             </Text>
           </View>
         </View>

@@ -30,6 +30,7 @@ export default function RootLayout() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="profile/bookings" options={{ title: 'My Bookings' }} />
+            <Stack.Screen name="profile/booking-detail" options={{ title: 'Booking Details' }} />
             <Stack.Screen name="turf/[turfId]" options={{ title: 'Turf Details' }} />
             <Stack.Screen
               name="turf/[turfId]/ground/[groundId]"

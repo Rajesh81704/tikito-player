@@ -1,9 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
+import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
-import { useBookSlotMutation } from '@/src/hooks/use-auth';
+import {
+  useBookSlotMutation,
+  useCreatePaymentOrderMutation,
+  useVerifyPaymentMutation,
+} from '@/src/hooks/use-auth';
 import type { AvailableSlot } from '@/src/lib/api';
 
 function formatTime(value: string) {
@@ -28,7 +35,11 @@ export default function BookScreen() {
     groundName?: string;
     slots?: string;
   }>();
+
   const bookSlotMutation = useBookSlotMutation();
+  const createOrderMutation = useCreatePaymentOrderMutation();
+  const verifyPaymentMutation = useVerifyPaymentMutation();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const selectedSlots =
     typeof params.slots === 'string'
@@ -41,33 +52,124 @@ export default function BookScreen() {
     return <FullScreenLoader label="Loading booking details..." />;
   }
 
-  const handleConfirm = async () => {
+  const handleConfirmAndPay = async () => {
+    setIsProcessing(true);
+
     try {
-      await Promise.all(
+      // Step 1: Book all selected slots
+      const bookingResults = await Promise.all(
         selectedSlots.map((slot) =>
-          bookSlotMutation.mutateAsync({
-            slot_id: slot.slot_id,
-          }),
+          bookSlotMutation.mutateAsync({ slot_id: slot.slot_id }),
         ),
       );
 
-      router.replace({
-        pathname: '/turf/[turfId]/ground/[groundId]/success',
-        params: {
-          turfId: typeof params.turfId === 'string' ? params.turfId : '',
-          groundId: typeof params.groundId === 'string' ? params.groundId : '',
-          turfName: typeof params.turfName === 'string' ? params.turfName : '',
-          groundName:
-            typeof params.groundName === 'string' ? params.groundName : '',
-        },
-      });
+      // Get the first booking ID for payment
+      const bookingId = bookingResults[0]?.booking_id;
+
+      if (!bookingId) {
+        throw new Error('Booking created but no booking ID returned.');
+      }
+
+      // Step 2: Create Razorpay order
+      const order = await createOrderMutation.mutateAsync(bookingId);
+
+      // Step 3: Open payment page in browser
+      const baseUrl =
+        process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://tikito.vercel.app';
+      const payUrl = `${baseUrl}/pay?key=${encodeURIComponent(order.key)}&amount=${order.amount}&orderId=${encodeURIComponent(order.order_id)}&bookingId=${encodeURIComponent(bookingId)}`;
+
+      console.log('Payment URL:', payUrl);
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        payUrl,
+        'exp+tikito-player:///payment-success',
+      );
+
+      // Step 4: Handle the result
+      console.log('[PAYMENT] WebBrowser result type:', result.type);
+      console.log('[PAYMENT] WebBrowser result url:', result.type === 'success' ? result.url : 'N/A');
+
+      if (result.type === 'success' && result.url) {
+        // Parse deep link params
+        const url = Linking.parse(result.url);
+        const orderId = url.queryParams?.orderId as string | undefined;
+        const paymentId = url.queryParams?.paymentId as string | undefined;
+        const signature = url.queryParams?.signature as string | undefined;
+        const returnedBookingId = (url.queryParams?.bookingId as string) || bookingId;
+
+        if (orderId && paymentId && signature) {
+          // Verify payment on backend
+          await verifyPaymentMutation.mutateAsync({
+            booking_id: returnedBookingId,
+            razorpay_order_id: orderId,
+            razorpay_payment_id: paymentId,
+            razorpay_signature: signature,
+          });
+
+          // Only navigate to success after payment is verified
+          router.replace({
+            pathname: '/turf/[turfId]/ground/[groundId]/success',
+            params: {
+              turfId: typeof params.turfId === 'string' ? params.turfId : '',
+              groundId:
+                typeof params.groundId === 'string' ? params.groundId : '',
+              turfName:
+                typeof params.turfName === 'string' ? params.turfName : '',
+              groundName:
+                typeof params.groundName === 'string' ? params.groundName : '',
+            },
+          });
+        } else {
+          // Deep link came back without payment params
+          Alert.alert(
+            'Payment incomplete',
+            'Payment was not completed. Your booking is pending.',
+            [
+              {
+                text: 'Go to Bookings',
+                onPress: () => router.replace('/profile/bookings'),
+              },
+              { text: 'OK' },
+            ],
+          );
+        }
+      } else if (result.type === 'cancel' || result.type === 'dismiss') {
+        // User closed the browser — webhook will handle payment confirmation
+        Alert.alert(
+          'Payment pending',
+          'If you completed the payment, your booking will be confirmed shortly via our server. Check "My Bookings" for status.',
+          [
+            {
+              text: 'Go to Bookings',
+              onPress: () => router.replace('/profile/bookings'),
+            },
+            { text: 'OK' },
+          ],
+        );
+      }
     } catch (error) {
       Alert.alert(
         'Booking failed',
         error instanceof Error ? error.message : 'Please try again.',
       );
+    } finally {
+      setIsProcessing(false);
     }
   };
+
+  const isPending =
+    isProcessing ||
+    bookSlotMutation.isPending ||
+    createOrderMutation.isPending ||
+    verifyPaymentMutation.isPending;
+
+  const buttonLabel = bookSlotMutation.isPending
+    ? 'Booking slots...'
+    : createOrderMutation.isPending
+      ? 'Creating order...'
+      : verifyPaymentMutation.isPending
+        ? 'Verifying payment...'
+        : 'Pay ₹' + totalAmount;
 
   return (
     <SafeAreaView
@@ -81,10 +183,10 @@ export default function BookScreen() {
       >
         <View className="gap-1 px-1">
           <Text className="text-[26px] font-black tracking-tight text-emerald-600">
-            Confirm Booking
+            Confirm & Pay
           </Text>
           <Text className="text-sm font-medium text-slate-500">
-            Review your selected slots before you continue.
+            Review your slots, then proceed to payment.
           </Text>
         </View>
 
@@ -155,51 +257,57 @@ export default function BookScreen() {
             </View>
           ))}
         </View>
+
+        {/* Payment info */}
+        <View className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+          <View className="flex-row items-center gap-2">
+            <Text className="text-sm">🔒</Text>
+            <Text className="text-xs font-medium text-slate-500">
+              Secured by Razorpay · UPI, Cards, Net Banking accepted
+            </Text>
+          </View>
+        </View>
       </ScrollView>
 
       <View className="border-t border-slate-200 bg-white px-5 pb-6 pt-4">
         <Pressable
           accessibilityRole="button"
           className={`min-h-[56px] flex-row items-center justify-between rounded-2xl px-5 ${
-            bookSlotMutation.isPending ? 'bg-slate-300' : 'bg-emerald-600'
+            isPending ? 'bg-slate-300' : 'bg-emerald-600'
           }`}
-          disabled={bookSlotMutation.isPending}
-          onPress={handleConfirm}
+          disabled={isPending}
+          onPress={handleConfirmAndPay}
           style={({ pressed }) => ({
-            transform: [
-              { scale: pressed && !bookSlotMutation.isPending ? 0.99 : 1 },
-            ],
-            opacity: bookSlotMutation.isPending ? 1 : pressed ? 0.96 : 1,
+            transform: [{ scale: pressed && !isPending ? 0.99 : 1 }],
+            opacity: isPending ? 1 : pressed ? 0.96 : 1,
           })}
         >
           <View>
             <Text
               className={`text-base font-black tracking-tight ${
-                bookSlotMutation.isPending ? 'text-slate-500' : 'text-white'
+                isPending ? 'text-slate-500' : 'text-white'
               }`}
             >
-              {bookSlotMutation.isPending ? 'Confirming...' : 'Confirm'}
+              {buttonLabel}
             </Text>
             <Text
               className={`text-xs font-semibold ${
-                bookSlotMutation.isPending
-                  ? 'text-slate-500'
-                  : 'text-emerald-50'
+                isPending ? 'text-slate-500' : 'text-emerald-50'
               }`}
             >
               {selectedSlots.length} slot
-              {selectedSlots.length === 1 ? '' : 's'} ready to book
+              {selectedSlots.length === 1 ? '' : 's'} · Secure payment
             </Text>
           </View>
 
           <View
             className={`h-9 w-9 items-center justify-center rounded-full ${
-              bookSlotMutation.isPending ? 'bg-slate-200' : 'bg-white/20'
+              isPending ? 'bg-slate-200' : 'bg-white/20'
             }`}
           >
             <Text
               className={`text-lg font-black ${
-                bookSlotMutation.isPending ? 'text-slate-500' : 'text-white'
+                isPending ? 'text-slate-500' : 'text-white'
               }`}
             >
               →

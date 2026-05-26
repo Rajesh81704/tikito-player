@@ -10,7 +10,7 @@ import { FullScreenLoader } from '@/src/components/FullScreenLoader';
 import { BookingCard } from '@/src/components/BookingCard';
 import { LocationPermissionModal } from '@/src/components/LocationPermissionModal';
 import { HomeHero } from '@/src/components/HomeHero';
-import { useMyBookingsQuery, useTurfsQuery } from '@/src/hooks/use-auth';
+import { useMyBookingsQuery, useNearbyTurfsQuery, useTurfsQuery } from '@/src/hooks/use-auth';
 import { useStoredLocation } from '@/src/hooks/use-stored-location';
 import { setStoredLocation } from '@/src/lib/storage';
 import { HomeTurfCard } from '@/src/components/HomeTurfCard';
@@ -23,13 +23,20 @@ export default function HomeScreen() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const turfsQuery = useTurfsQuery(location?.city, Boolean(location?.city));
+  const nearbyTurfsQuery = useNearbyTurfsQuery(
+    location?.latitude,
+    location?.longitude,
+    Boolean(location?.latitude),
+  );
   const bookingsQuery = useMyBookingsQuery(true);
   const upcomingBookings = useMemo(() => {
     const today = startOfDay(new Date());
 
     return (bookingsQuery.data ?? []).filter((booking) => {
       const bookingDate = startOfDay(parseISO(booking.booking_date));
-      return isSameDay(bookingDate, today) || isAfter(bookingDate, today);
+      const isUpcoming = isSameDay(bookingDate, today) || isAfter(bookingDate, today);
+      const isConfirmed = booking.booking_status === 'CONFIRMED' && booking.payment_status === 'PAID';
+      return isUpcoming && isConfirmed;
     });
   }, [bookingsQuery.data]);
 
@@ -183,19 +190,71 @@ export default function HomeScreen() {
                     Enable location to see nearby turfs
                   </Text>
                 </View>
-              ) : turfsQuery.isLoading ? (
+              ) : nearbyTurfsQuery.isLoading || turfsQuery.isLoading ? (
                 <ActivityIndicator color="#10b981" className="py-10" />
-              ) : turfsQuery.data?.length === 0 ? (
-                <View className="mx-5 rounded-3xl border-2 border-dashed border-slate-100 py-10 items-center justify-center">
-                  <Ionicons name="football-outline" size={32} color="#cbd5e1" />
-                  <Text className="mt-2 text-sm font-bold text-slate-500">
-                    No turfs available in your area
-                  </Text>
-                  <Text className="text-xs text-slate-400 mt-1">
-                    Try exploring nearby cities
-                  </Text>
-                </View>
-              ) : (
+              ) : (nearbyTurfsQuery.data?.length ?? 0) > 0 ? (
+                <ScrollView
+                  horizontal
+                  nestedScrollEnabled
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20 }}
+                >
+                  {nearbyTurfsQuery.data?.map((turf, index) => (
+                    <View
+                      key={turf.turf_field_id}
+                      style={{
+                        width: 280,
+                        marginRight:
+                          index === (nearbyTurfsQuery.data?.length ?? 0) - 1 ? 0 : 16,
+                      }}
+                    >
+                      <Pressable
+                        onPress={() =>
+                          router.push({
+                            pathname: '/turf/[turfId]',
+                            params: {
+                              turfId: turf.turf_field_id,
+                              turf: JSON.stringify({
+                                turf_field_id: turf.turf_field_id,
+                                turf_name: turf.turf_name,
+                                turf_address: turf.turf_address,
+                                turf_location: turf.turf_location,
+                                latitude: String(turf.latitude),
+                                longitude: String(turf.longitude),
+                                no_of_grounds: null,
+                                turf_facilities: null,
+                                turf_rules: null,
+                                turf_images: null,
+                              }),
+                            },
+                          })
+                        }
+                        style={({ pressed }) => ({
+                          transform: [{ scale: pressed ? 0.97 : 1 }],
+                        })}
+                        className="overflow-hidden rounded-[24px] bg-slate-50 border border-slate-100 shadow-sm"
+                      >
+                        <View className="p-4">
+                          <Text numberOfLines={1} className="text-lg font-black tracking-tight text-slate-900">
+                            {turf.turf_name}
+                          </Text>
+                          <View className="flex-row items-center mt-1">
+                            <Ionicons name="location" size={14} color="#10b981" />
+                            <Text numberOfLines={1} className="ml-1 text-sm font-medium text-slate-500 flex-1">
+                              {turf.turf_address || turf.turf_location || 'Nearby'}
+                            </Text>
+                          </View>
+                          <View className="mt-2 self-start rounded-full bg-emerald-50 px-3 py-1">
+                            <Text className="text-xs font-bold text-emerald-700">
+                              {turf.distance_km} km away
+                            </Text>
+                          </View>
+                        </View>
+                      </Pressable>
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : turfsQuery.data?.length ? (
                 <ScrollView
                   horizontal
                   nestedScrollEnabled
@@ -226,6 +285,16 @@ export default function HomeScreen() {
                     </View>
                   ))}
                 </ScrollView>
+              ) : (
+                <View className="mx-5 rounded-3xl border-2 border-dashed border-slate-100 py-10 items-center justify-center">
+                  <Ionicons name="football-outline" size={32} color="#cbd5e1" />
+                  <Text className="mt-2 text-sm font-bold text-slate-500">
+                    No turfs available in your area
+                  </Text>
+                  <Text className="text-xs text-slate-400 mt-1">
+                    Try exploring nearby cities
+                  </Text>
+                </View>
               )}
             </View>
 

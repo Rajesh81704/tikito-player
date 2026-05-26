@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Turf } from '@/src/lib/api';
+import { getFirstImage } from '@/src/lib/images';
 
 type TurfCardProps = {
   turf: Turf;
@@ -22,8 +23,7 @@ const FACILITY_ICONS: Record<
 };
 
 export function TurfFieldCard({ turf, onPress }: TurfCardProps) {
-  // Random image selection (1-6) memoized per card instance
-  const randomImage = useMemo(() => {
+  const fallbackImage = useMemo(() => {
     const images = [
       require('@/assets/images/img1.jpg'),
       require('@/assets/images/img2.jpg'),
@@ -34,6 +34,8 @@ export function TurfFieldCard({ turf, onPress }: TurfCardProps) {
     ];
     return images[Math.floor(Math.random() * images.length)];
   }, []);
+
+  const remoteImage = getFirstImage(turf.turf_images ?? null);
 
   // Convert comma separated string to array and trim
   const facilities = turf.turf_facilities
@@ -51,7 +53,7 @@ export function TurfFieldCard({ turf, onPress }: TurfCardProps) {
       {/* Turf Image */}
       <View className="h-32 w-full bg-slate-200">
         <Image
-          source={randomImage}
+          source={remoteImage ? { uri: remoteImage } : fallbackImage}
           className="h-full w-full object-cover"
           resizeMode="cover"
         />

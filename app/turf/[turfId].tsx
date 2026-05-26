@@ -8,6 +8,7 @@ import { FullScreenLoader } from '@/src/components/FullScreenLoader';
 import { GroundCard } from '@/src/components/GroundCard';
 import { useGroundDetailsQuery } from '@/src/hooks/use-auth';
 import type { Turf } from '@/src/lib/api';
+import { getFirstImage } from '@/src/lib/images';
 
 function splitPillValues(value: string | null) {
   if (!value) {
@@ -42,7 +43,9 @@ export default function TurfDetailsScreen() {
     typeof params.turfId === 'string' ? params.turfId : undefined,
     true,
   );
+  const remoteImage = getFirstImage(turf?.turf_images ?? null);
   const heroImage = useMemo(() => {
+    if (remoteImage) return null; // will use uri source
     const images = [
       require('@/assets/images/img1.jpg'),
       require('@/assets/images/img2.jpg'),
@@ -51,9 +54,8 @@ export default function TurfDetailsScreen() {
       require('@/assets/images/img5.jpg'),
       require('@/assets/images/img6.jpg'),
     ];
-
     return images[Math.floor(Math.random() * images.length)];
-  }, []);
+  }, [remoteImage]);
   const facilityItems = splitPillValues(turf?.turf_facilities ?? null);
   const ruleItems = splitPillValues(turf?.turf_rules ?? null);
 
@@ -74,7 +76,7 @@ export default function TurfDetailsScreen() {
         <View className="relative">
           <View className="h-80 w-full bg-slate-200">
             <Image
-              source={heroImage}
+              source={remoteImage ? { uri: remoteImage } : heroImage}
               className="h-full w-full"
               resizeMode="cover"
             />

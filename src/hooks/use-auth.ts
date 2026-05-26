@@ -5,17 +5,28 @@ import {
   bookSlot,
   type Booking,
   type BookSlotPayload,
+  createPaymentOrder,
   fetchCurrentUser,
   fetchAvailableSlots,
   fetchGroundDetails,
   fetchMyBookings,
+  fetchNearbyTurfs,
   fetchTurfs,
+  forgotPassword,
+  type ForgotPasswordPayload,
   type Ground,
   type LoginPayload,
   loginUser,
   logoutUser,
+  type NearbyTurf,
+  resetPassword,
+  type ResetPasswordPayload,
   type SignupPayload,
   signupUser,
+  verifyOtp,
+  verifyPayment,
+  type VerifyOtpPayload,
+  type VerifyPaymentPayload,
 } from '@/src/lib/api';
 
 export function useLoginMutation() {
@@ -54,6 +65,15 @@ export function useTurfsQuery(city?: string, enabled = true) {
   });
 }
 
+export function useNearbyTurfsQuery(lat?: number, lng?: number, enabled = true) {
+  return useQuery<NearbyTurf[]>({
+    queryKey: ['nearby-turfs', lat, lng],
+    queryFn: () => fetchNearbyTurfs(lat as number, lng as number),
+    enabled: enabled && lat !== undefined && lng !== undefined,
+    retry: 1,
+  });
+}
+
 export function useGroundDetailsQuery(turfId?: string, enabled = true) {
   return useQuery<Ground[]>({
     queryKey: ['ground-details', turfId],
@@ -84,5 +104,35 @@ export function useMyBookingsQuery(enabled = true) {
     queryFn: fetchMyBookings,
     enabled,
     retry: 1,
+  });
+}
+
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: (payload: ForgotPasswordPayload) => forgotPassword(payload),
+  });
+}
+
+export function useVerifyOtpMutation() {
+  return useMutation({
+    mutationFn: (payload: VerifyOtpPayload) => verifyOtp(payload),
+  });
+}
+
+export function useResetPasswordMutation() {
+  return useMutation({
+    mutationFn: (payload: ResetPasswordPayload) => resetPassword(payload),
+  });
+}
+
+export function useCreatePaymentOrderMutation() {
+  return useMutation({
+    mutationFn: (bookingId: string) => createPaymentOrder(bookingId),
+  });
+}
+
+export function useVerifyPaymentMutation() {
+  return useMutation({
+    mutationFn: (payload: VerifyPaymentPayload) => verifyPayment(payload),
   });
 }

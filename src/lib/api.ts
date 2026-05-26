@@ -38,6 +38,7 @@ export type Turf = {
   no_of_grounds: number | null;
   turf_facilities: string | null;
   turf_rules: string | null;
+  turf_images: string | string[] | null;
   longitude: string | null;
   latitude: string | null;
 };
@@ -82,6 +83,7 @@ export type Booking = {
   booking_id: string;
   booking_date: string;
   booking_status: string;
+  payment_status: string;
   is_available: boolean;
   booked_at: string;
   start_time: string;
@@ -180,6 +182,27 @@ export async function fetchTurfs(city?: string) {
   }
 }
 
+export type NearbyTurf = {
+  turf_field_id: string;
+  turf_name: string;
+  turf_address: string | null;
+  turf_location: string | null;
+  latitude: number;
+  longitude: number;
+  distance_km: number;
+};
+
+export async function fetchNearbyTurfs(lat: number, lng: number, radiusKm = 10) {
+  try {
+    const { data } = await apiClient.get<NearbyTurf[]>('/users/nearby-turfs', {
+      params: { lat, lng, radius_km: radiusKm },
+    });
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
 export async function fetchGroundDetails(turfId: string) {
   try {
     const { data } = await apiClient.get<Ground[]>('/users/ground-details', {
@@ -221,6 +244,87 @@ export async function bookSlot(payload: BookSlotPayload) {
 export async function fetchMyBookings() {
   try {
     const { data } = await apiClient.get<Booking[]>('/users/my-bookings');
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+// ─── Forgot Password ─────────────────────────────────────────────────────────
+
+export type ForgotPasswordPayload = {
+  email: string;
+  role: 'user';
+};
+
+export type VerifyOtpPayload = {
+  email: string;
+  otp: string;
+};
+
+export type ResetPasswordPayload = {
+  email: string;
+  new_password: string;
+};
+
+export async function forgotPassword(payload: ForgotPasswordPayload) {
+  try {
+    const { data } = await apiClient.post('/auth/forgot-password', payload);
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function verifyOtp(payload: VerifyOtpPayload) {
+  try {
+    const { data } = await apiClient.post('/auth/verify-otp', payload);
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function resetPassword(payload: ResetPasswordPayload) {
+  try {
+    const { data } = await apiClient.post('/auth/reset-password', payload);
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+// ─── Payment ─────────────────────────────────────────────────────────────────
+
+export type CreateOrderResponse = {
+  order_id: string;
+  amount: number;
+  currency: string;
+  booking_id: string;
+  key: string;
+};
+
+export type VerifyPaymentPayload = {
+  booking_id: string;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+export async function createPaymentOrder(bookingId: string) {
+  try {
+    const { data } = await apiClient.post<CreateOrderResponse>(
+      `/users/payment/create-order?booking_id=${bookingId}`,
+    );
+    return data;
+  } catch (error) {
+    throw new Error(extractApiErrorMessage(error));
+  }
+}
+
+export async function verifyPayment(payload: VerifyPaymentPayload) {
+  try {
+    const { data } = await apiClient.post('/users/payment/verify', payload);
     return data;
   } catch (error) {
     throw new Error(extractApiErrorMessage(error));
