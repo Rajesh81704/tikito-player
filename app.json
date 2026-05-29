@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tikito",
     "slug": "tikito-player",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "scheme": "tikito-player",
     "platforms": [
       "ios",
