@@ -1,15 +1,13 @@
 module.exports = (api) => {
   api.cache(true);
-  const plugins = [];
-
-  plugins.push('react-native-worklets/plugin');
 
   return {
     presets: [
-      ['babel-preset-expo', { jsxImportSource: 'nativewind' }],
+      ['babel-preset-expo', { jsxImportSource: 'nativewind', unstable_transformProfile: 'hermes-stable' }],
       'nativewind/babel',
     ],
-
-    plugins,
+    plugins: [
+      'react-native-worklets/plugin',
+    ],
   };
 };
