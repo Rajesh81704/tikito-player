@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Turf } from '@/src/lib/api';
@@ -9,11 +9,7 @@ type TurfCardProps = {
   onPress?: () => void;
 };
 
-// Facility to Icon Mapping
-const FACILITY_ICONS: Record<
-  string,
-  keyof typeof Ionicons.prototype.props.name
-> = {
+const FACILITY_ICONS: Record<string, string> = {
   Parking: 'car-outline',
   Floodlights: 'flashlight-outline',
   Washroom: 'water-outline',
@@ -23,21 +19,8 @@ const FACILITY_ICONS: Record<
 };
 
 export function TurfFieldCard({ turf, onPress }: TurfCardProps) {
-  const fallbackImage = useMemo(() => {
-    const images = [
-      require('@/assets/images/img1.jpg'),
-      require('@/assets/images/img2.jpg'),
-      require('@/assets/images/img3.jpg'),
-      require('@/assets/images/img4.jpg'),
-      require('@/assets/images/img5.jpg'),
-      require('@/assets/images/img6.jpg'),
-    ];
-    return images[Math.floor(Math.random() * images.length)];
-  }, []);
+  const imageUrl = getFirstImage(turf.turf_images ?? null);
 
-  const remoteImage = getFirstImage(turf.turf_images ?? null);
-
-  // Convert comma separated string to array and trim
   const facilities = turf.turf_facilities
     ? turf.turf_facilities.split(',').map((f) => f.trim())
     : [];
@@ -52,12 +35,17 @@ export function TurfFieldCard({ turf, onPress }: TurfCardProps) {
     >
       {/* Turf Image */}
       <View className="h-32 w-full bg-slate-200">
-        <Image
-          source={remoteImage ? { uri: remoteImage } : fallbackImage}
-          className="h-full w-full object-cover"
-          resizeMode="cover"
-        />
-        {/* Grounds Badge */}
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            className="h-full w-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="h-full w-full items-center justify-center bg-slate-100">
+            <Ionicons name="football-outline" size={32} color="#cbd5e1" />
+          </View>
+        )}
         {turf.no_of_grounds && (
           <View className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-lg">
             <Text className="text-[10px] font-bold text-white uppercase">
@@ -95,7 +83,7 @@ export function TurfFieldCard({ turf, onPress }: TurfCardProps) {
               className="h-7 w-7 items-center justify-center rounded-full bg-white border border-slate-100"
             >
               <Ionicons
-                name={FACILITY_ICONS[facility] || 'help-circle-outline'}
+                name={(FACILITY_ICONS[facility] || 'help-circle-outline') as any}
                 size={14}
                 color="#059669"
               />

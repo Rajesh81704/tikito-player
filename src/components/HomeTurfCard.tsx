@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Turf } from '@/src/lib/api';
@@ -10,19 +10,7 @@ type HomeTurfCardProps = {
 };
 
 export function HomeTurfCard({ turf, onPress }: HomeTurfCardProps) {
-  const fallbackImage = useMemo(() => {
-    const images = [
-      require('@/assets/images/img1.jpg'),
-      require('@/assets/images/img2.jpg'),
-      require('@/assets/images/img3.jpg'),
-      require('@/assets/images/img4.jpg'),
-      require('@/assets/images/img5.jpg'),
-      require('@/assets/images/img6.jpg'),
-    ];
-    return images[Math.floor(Math.random() * images.length)];
-  }, []);
-
-  const remoteImage = getFirstImage(turf.turf_images ?? null);
+  const imageUrl = getFirstImage(turf.turf_images ?? null);
 
   return (
     <Pressable
@@ -33,12 +21,18 @@ export function HomeTurfCard({ turf, onPress }: HomeTurfCardProps) {
       className="overflow-hidden rounded-[24px] bg-slate-50 border border-slate-100 shadow-sm"
     >
       {/* Visual Area */}
-      <View className="h-40 w-full">
-        <Image
-          source={remoteImage ? { uri: remoteImage } : fallbackImage}
-          className="h-full w-full"
-          resizeMode="cover"
-        />
+      <View className="h-40 w-full bg-slate-200">
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            className="h-full w-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="h-full w-full items-center justify-center bg-slate-100">
+            <Ionicons name="football-outline" size={40} color="#cbd5e1" />
+          </View>
+        )}
         {/* Grounds Badge */}
         {turf.no_of_grounds && (
           <View className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-lg">

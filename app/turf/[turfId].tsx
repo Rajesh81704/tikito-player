@@ -1,6 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -44,18 +43,6 @@ export default function TurfDetailsScreen() {
     true,
   );
   const remoteImage = getFirstImage(turf?.turf_images ?? null);
-  const heroImage = useMemo(() => {
-    if (remoteImage) return null; // will use uri source
-    const images = [
-      require('@/assets/images/img1.jpg'),
-      require('@/assets/images/img2.jpg'),
-      require('@/assets/images/img3.jpg'),
-      require('@/assets/images/img4.jpg'),
-      require('@/assets/images/img5.jpg'),
-      require('@/assets/images/img6.jpg'),
-    ];
-    return images[Math.floor(Math.random() * images.length)];
-  }, [remoteImage]);
   const facilityItems = splitPillValues(turf?.turf_facilities ?? null);
   const ruleItems = splitPillValues(turf?.turf_rules ?? null);
 
@@ -75,11 +62,17 @@ export default function TurfDetailsScreen() {
       >
         <View className="relative">
           <View className="h-80 w-full bg-slate-200">
-            <Image
-              source={remoteImage ? { uri: remoteImage } : heroImage}
-              className="h-full w-full"
-              resizeMode="cover"
-            />
+            {remoteImage ? (
+              <Image
+                source={{ uri: remoteImage }}
+                className="h-full w-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="h-full w-full items-center justify-center bg-slate-100">
+                <Ionicons name="football-outline" size={64} color="#cbd5e1" />
+              </View>
+            )}
             <View className="absolute inset-0 bg-slate-950/25" />
             <View className="absolute inset-x-0 bottom-0 h-32 bg-slate-950/25" />
           </View>
