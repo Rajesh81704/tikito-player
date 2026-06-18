@@ -6,7 +6,8 @@
     "scheme": "tikito-player",
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
     "web": {
       "bundler": "metro",
