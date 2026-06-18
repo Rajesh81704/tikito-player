@@ -12,6 +12,7 @@ import {
   useVerifyPaymentMutation,
 } from '@/src/hooks/use-auth';
 import type { AvailableSlot } from '@/src/lib/api';
+import { getStoredToken } from '@/src/lib/storage';
 
 function formatTime(value: string) {
   return value.slice(0, 5);
@@ -71,18 +72,21 @@ export default function BookScreen() {
       }
 
       // Step 2: Create Razorpay order
+      const callbackUrl = Linking.createURL('/payment-success');
       const order = await createOrderMutation.mutateAsync(bookingId);
 
       // Step 3: Open payment page in browser
       const baseUrl =
-        process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://tikito.vercel.app';
-      const payUrl = `${baseUrl}/pay?key=${encodeURIComponent(order.key)}&amount=${order.amount}&orderId=${encodeURIComponent(order.order_id)}&bookingId=${encodeURIComponent(bookingId)}`;
+        process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://api.tikito.in';
+      const token = await getStoredToken();
+      const payUrl = `${baseUrl}/pay?key=${encodeURIComponent(order.key)}&amount=${order.amount}&orderId=${encodeURIComponent(order.order_id)}&bookingId=${encodeURIComponent(bookingId)}&callbackUrl=${encodeURIComponent(callbackUrl)}&token=${encodeURIComponent(token || '')}`;
 
       console.log('Payment URL:', payUrl);
+      console.log('Callback URL:', callbackUrl);
 
       const result = await WebBrowser.openAuthSessionAsync(
         payUrl,
-        'exp+tikito-player:///payment-success',
+        'tikito-player://payment-success',
       );
 
       // Step 4: Handle the result
@@ -173,7 +177,7 @@ export default function BookScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white"
+      className="flex-1 bg-surface-bg"
       edges={['left', 'right', 'bottom']}
     >
       <ScrollView
@@ -182,30 +186,30 @@ export default function BookScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-1 px-1">
-          <Text className="text-[26px] font-black tracking-tight text-emerald-600">
+          <Text className="text-[26px] font-black tracking-tight text-gold">
             Confirm & Pay
           </Text>
-          <Text className="text-sm font-medium text-slate-500">
+          <Text className="text-sm font-medium text-ink-secondary">
             Review your slots, then proceed to payment.
           </Text>
         </View>
 
-        <View className="gap-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <View className="gap-4 rounded-2xl border border-surface-border bg-surface-card p-4">
           <View className="flex-row flex-wrap gap-3">
-            <View className="min-w-[140px] flex-1 rounded-2xl bg-slate-50 px-4 py-3">
-              <Text className="text-[11px] font-bold uppercase tracking-[0.7px] text-slate-400">
+            <View className="min-w-[140px] flex-1 rounded-2xl bg-surface-border px-4 py-3">
+              <Text className="text-[11px] font-bold uppercase tracking-[0.7px] text-ink-muted">
                 Turf
               </Text>
-              <Text className="mt-1 text-base font-black text-slate-900">
+              <Text className="mt-1 text-base font-black text-gold">
                 {typeof params.turfName === 'string' ? params.turfName : 'Turf'}
               </Text>
             </View>
 
-            <View className="min-w-[140px] flex-1 rounded-2xl bg-slate-50 px-4 py-3">
-              <Text className="text-[11px] font-bold uppercase tracking-[0.7px] text-slate-400">
+            <View className="min-w-[140px] flex-1 rounded-2xl bg-surface-border px-4 py-3">
+              <Text className="text-[11px] font-bold uppercase tracking-[0.7px] text-ink-muted">
                 Ground
               </Text>
-              <Text className="mt-1 text-base font-black text-slate-900">
+              <Text className="mt-1 text-base font-black text-gold">
                 {typeof params.groundName === 'string'
                   ? params.groundName
                   : 'Ground'}
@@ -213,15 +217,15 @@ export default function BookScreen() {
             </View>
           </View>
 
-          <View className="rounded-2xl bg-emerald-50 px-4 py-4">
-            <Text className="text-[11px] font-bold uppercase tracking-[0.7px] text-emerald-700">
+          <View className="rounded-2xl border border-surface-border bg-surface-card px-4 py-4">
+            <Text className="text-[11px] font-bold uppercase tracking-[0.7px] text-ink-muted">
               Total amount
             </Text>
             <View className="mt-2 flex-row items-end justify-between">
-              <Text className="text-[28px] font-black tracking-tight text-emerald-600">
+              <Text className="text-[28px] font-black tracking-tight text-gold">
                 ₹ {totalAmount}
               </Text>
-              <Text className="text-sm font-semibold text-emerald-700">
+              <Text className="text-sm font-semibold text-gold">
                 {selectedSlots.length} slot
                 {selectedSlots.length === 1 ? '' : 's'}
               </Text>
@@ -230,26 +234,26 @@ export default function BookScreen() {
         </View>
 
         <View className="gap-3">
-          <Text className="px-1 text-sm font-semibold text-slate-500">
+          <Text className="px-1 text-sm font-semibold text-gold">
             Selected slots
           </Text>
 
           {selectedSlots.map((slot) => (
             <View
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3"
+              className="rounded-2xl border border-surface-border bg-surface-card px-4 py-3"
               key={slot.slot_id}
             >
               <View className="flex-row items-start justify-between gap-3">
                 <View className="flex-1">
-                  <Text className="text-sm font-bold text-slate-900">
+                  <Text className="text-sm font-bold text-gold">
                     {formatDateLabel(slot.date)}
                   </Text>
-                  <Text className="mt-1 text-sm font-semibold text-slate-600">
+                  <Text className="mt-1 text-sm font-semibold text-ink-secondary">
                     {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                   </Text>
                 </View>
-                <View className="rounded-xl bg-slate-50 px-3 py-2">
-                  <Text className="text-sm font-black text-slate-900">
+                <View className="rounded-xl bg-surface-border px-3 py-2">
+                  <Text className="text-sm font-black text-gold">
                     ₹ {slot.price}
                   </Text>
                 </View>
@@ -259,21 +263,21 @@ export default function BookScreen() {
         </View>
 
         {/* Payment info */}
-        <View className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+        <View className="rounded-2xl border border-surface-border bg-surface-card px-4 py-3">
           <View className="flex-row items-center gap-2">
             <Text className="text-sm">🔒</Text>
-            <Text className="text-xs font-medium text-slate-500">
+            <Text className="text-xs font-medium text-ink-secondary">
               Secured by Razorpay · UPI, Cards, Net Banking accepted
             </Text>
           </View>
         </View>
       </ScrollView>
 
-      <View className="border-t border-slate-200 bg-white px-5 pb-6 pt-4">
+      <View className="border-t border-surface-border bg-surface-card px-5 pb-6 pt-4">
         <Pressable
           accessibilityRole="button"
           className={`min-h-[56px] flex-row items-center justify-between rounded-2xl px-5 ${
-            isPending ? 'bg-slate-300' : 'bg-emerald-600'
+            isPending ? 'bg-surface-elevated' : 'bg-gold-light/90'
           }`}
           disabled={isPending}
           onPress={handleConfirmAndPay}
@@ -285,14 +289,14 @@ export default function BookScreen() {
           <View>
             <Text
               className={`text-base font-black tracking-tight ${
-                isPending ? 'text-slate-500' : 'text-white'
+                isPending ? 'text-ink-secondary' : 'text-pitch-dim'
               }`}
             >
               {buttonLabel}
             </Text>
             <Text
               className={`text-xs font-semibold ${
-                isPending ? 'text-slate-500' : 'text-emerald-50'
+                isPending ? 'text-ink-secondary' : 'text-gold'
               }`}
             >
               {selectedSlots.length} slot
@@ -302,12 +306,12 @@ export default function BookScreen() {
 
           <View
             className={`h-9 w-9 items-center justify-center rounded-full ${
-              isPending ? 'bg-slate-200' : 'bg-white/20'
+              isPending ? 'bg-surface-border' : 'bg-gold/20'
             }`}
           >
             <Text
               className={`text-lg font-black ${
-                isPending ? 'text-slate-500' : 'text-white'
+                isPending ? 'text-ink-secondary' : 'text-gold'
               }`}
             >
               →

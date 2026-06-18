@@ -1,46 +1,180 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import type { ComponentProps } from 'react';
 import { useMemo, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/src/context/AuthContext';
 import { useCurrentUserQuery } from '@/src/hooks/use-auth';
-import { useStoredLocation } from '@/src/hooks/use-stored-location';
 import { deleteMyAccount } from '@/src/lib/api';
+import { C, radius } from '@/src/lib/theme';
+
+function SettingRow({
+  icon,
+  title,
+  onPress,
+  color,
+  isLast,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  onPress: () => void;
+  color?: string;
+  isLast?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 18,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: C.border,
+      }}
+    >
+      <Ionicons
+        name={icon}
+        size={20}
+        color={color ?? C.textPrimary}
+      />
+
+      <Text
+        style={{
+          flex: 1,
+          marginLeft: 14,
+          fontSize: 15,
+          fontWeight: '600',
+          color: color ?? C.textPrimary,
+        }}
+      >
+        {title}
+      </Text>
+
+      <Ionicons
+        name="chevron-forward"
+        size={18}
+        color={C.textMuted}
+      />
+    </Pressable>
+  );
+}
+
+function Accordion({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View
+      style={{
+        backgroundColor: C.card,
+        borderRadius: radius.xl,
+        marginBottom: 14,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: C.border,
+      }}
+    >
+      <Pressable
+        onPress={() => setOpen(!open)}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 18,
+          paddingVertical: 18,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: '700',
+            color: C.textPrimary,
+          }}
+        >
+          {title}
+        </Text>
+
+        <Ionicons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color={C.textSecondary}
+        />
+      </Pressable>
+
+      {open && (
+        <View
+          style={{
+            borderTopWidth: 1,
+            borderTopColor: C.border,
+          }}
+        >
+          {children}
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const { logout, clearSession } = useAuth();
   const { data: me } = useCurrentUserQuery();
-  const { location } = useStoredLocation();
+
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
 
   const initials = useMemo(() => {
     const name = me?.full_name?.trim();
+
     if (!name) return 'U';
-    const parts = name.split(/\s+/).filter(Boolean);
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+
+    const parts = name.split(/\s+/);
+
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return (
+      (parts[0][0] ?? '') +
+      (parts[1][0] ?? '')
+    ).toUpperCase();
   }, [me?.full_name]);
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await logout();
-            router.replace('/(auth)/login');
-          } catch {
-            Alert.alert('Error', 'Logout failed.');
-          }
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
         },
-      },
-    ]);
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/(auth)/login');
+            } catch {
+              Alert.alert('Error', 'Logout failed');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleDeleteAccount = () => {
@@ -48,293 +182,230 @@ export default function ProfileScreen() {
 
     Alert.alert(
       'Delete Account',
-      'This will permanently delete your account and all data. This cannot be undone.',
+      'This action cannot be undone.',
       [
-        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               setIsDeleting(true);
+
               await deleteMyAccount();
               await clearSession();
+
               router.replace('/(auth)/login');
-            } catch (error) {
+            } catch (err) {
               Alert.alert(
                 'Error',
-                error instanceof Error
-                  ? error.message
-                  : 'Delete account failed.',
+                err instanceof Error
+                  ? err.message
+                  : 'Failed to delete account'
               );
             } finally {
               setIsDeleting(false);
             }
           },
         },
-      ],
+      ]
     );
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: C.bg,
+      }}
+    >
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          padding: 16,
+          paddingBottom: 50,
+        }}
       >
-        {/* Profile Header */}
-        <View className="bg-white px-6 pt-6 pb-8">
-          <View className="flex-row items-center gap-4">
-            {/* Avatar */}
-            <View className="h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
-              <Text className="text-2xl font-black text-emerald-700">
-                {initials}
-              </Text>
-            </View>
+        {/* Header */}
 
-            {/* Name & Info */}
-            <View className="flex-1">
-              <Text className="text-xl font-black tracking-tight text-slate-900">
-                {me?.full_name ?? 'User'}
-              </Text>
-              <Text className="mt-0.5 text-sm text-slate-500">
-                {me?.email ?? 'No email'}
-              </Text>
-              <View className="mt-2 flex-row items-center">
-                <Ionicons name="location-sharp" size={12} color="#10b981" />
-                <Text className="ml-1 text-xs font-semibold text-emerald-700">
-                  {location?.city ?? 'Location not set'}
-                </Text>
-              </View>
-            </View>
+        <View
+          style={{
+            alignItems: 'center',
+            marginBottom: 28,
+            paddingTop: 10,
+          }}
+        >
+          <View
+            style={{
+              width: 90,
+              height: 90,
+              borderRadius: 45,
+              backgroundColor: C.gold,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 30,
+                fontWeight: '800',
+                color: '#fff',
+              }}
+            >
+              {initials}
+            </Text>
           </View>
 
-          {/* Stats Row */}
-          <View className="mt-6 flex-row gap-3">
-            <View className="flex-1 items-center rounded-2xl bg-slate-50 py-3">
-              <Text className="text-lg font-black text-slate-900">
-                {me?.phone_no ?? '—'}
-              </Text>
-              <Text className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                Phone
-              </Text>
-            </View>
-            <View className="flex-1 items-center rounded-2xl bg-slate-50 py-3">
-              <Text className="text-lg font-black text-emerald-600">
-                {me?.is_verified ? '✓' : '✗'}
-              </Text>
-              <Text className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                Verified
-              </Text>
-            </View>
+          <Text
+            style={{
+              marginTop: 14,
+              fontSize: 24,
+              fontWeight: '700',
+              color: C.textPrimary,
+            }}
+          >
+            {me?.full_name ?? 'User'}
+          </Text>
+
+          <Text
+            style={{
+              marginTop: 4,
+              color: C.textSecondary,
+              fontSize: 14,
+            }}
+          >
+            {me?.email ?? ''}
+          </Text>
+
+          {me?.phone_no && (
+            <Text
+              style={{
+                marginTop: 4,
+                color: C.textMuted,
+                fontSize: 13,
+              }}
+            >
+              {me.phone_no}
+            </Text>
+          )}
+
+          <View
+            style={{
+              marginTop: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: me?.is_verified
+                ? 'rgba(34,197,94,0.12)'
+                : 'rgba(239,68,68,0.12)',
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 999,
+            }}
+          >
+            <Ionicons
+              name={
+                me?.is_verified
+                  ? 'checkmark-circle'
+                  : 'close-circle'
+              }
+              size={14}
+              color={
+                me?.is_verified
+                  ? '#22c55e'
+                  : '#ef4444'
+              }
+            />
+
+            <Text
+              style={{
+                marginLeft: 6,
+                fontSize: 12,
+                fontWeight: '700',
+                color:
+                  me?.is_verified
+                    ? '#22c55e'
+                    : '#ef4444',
+              }}
+            >
+              {me?.is_verified
+                ? 'Verified Account'
+                : 'Not Verified'}
+            </Text>
           </View>
         </View>
 
-        {/* Menu Section */}
-        <View className="mt-4 bg-white px-4 py-2">
-          <Text className="px-2 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">
-            Activity
-          </Text>
-          <MenuItem
+        <View
+          style={{
+            backgroundColor: C.card,
+            borderRadius: radius.xl,
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: C.border,
+            marginBottom: 16,
+          }}
+        >
+          <SettingRow
             icon="calendar-outline"
             title="My Bookings"
-            subtitle="View all your turf bookings"
             onPress={() => router.push('/profile/bookings')}
+            isLast
           />
         </View>
 
-        <View className="mt-4 bg-white px-4 py-2">
-          <Text className="px-2 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">
-            Account
-          </Text>
-          <MenuItem
-            icon="lock-closed-outline"
-            title="Change Password"
-            subtitle="Update your account password"
-            onPress={() => router.push('/(auth)/forgot-password')}
+        {/* Support */}
+
+        <Accordion title="Support">
+          <SettingRow
+            icon="mail-outline"
+            title="Contact Support"
+            onPress={() =>
+              Linking.openURL('mailto:tikitoapp@gmail.com')
+            }
           />
-          <Separator />
-          <MenuItem
+
+          <SettingRow
+            icon="trash-outline"
+            title="Delete Account"
+            color={C.error}
+            onPress={handleDeleteAccount}
+            isLast
+          />
+        </Accordion>
+
+        <View
+          style={{
+            backgroundColor: C.card,
+            borderRadius: radius.xl,
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: C.border,
+            marginTop: 16,
+          }}
+        >
+          <SettingRow
             icon="log-out-outline"
             title="Logout"
-            subtitle="Sign out of your account"
+            color={C.gold}
             onPress={handleLogout}
-            color="#ef4444"
+            isLast
           />
         </View>
 
-        <View className="mt-4 bg-white px-4 py-2">
-          <Pressable
-            onPress={() => setShowHelp(!showHelp)}
-            className="flex-row items-center justify-between px-2 py-3"
-          >
-            <Text className="text-xs font-bold uppercase tracking-wide text-slate-400">
-              Help & Support
-            </Text>
-            <Ionicons
-              name={showHelp ? 'chevron-up' : 'chevron-down'}
-              size={16}
-              color="#94a3b8"
-            />
-          </Pressable>
-
-          {showHelp && (
-            <View>
-              <MenuItem
-                icon="help-circle-outline"
-                title="FAQ"
-                subtitle="Frequently asked questions"
-                onPress={() =>
-                  Alert.alert('FAQ', undefined, [
-                    { text: 'Close' },
-                  ], { cancelable: true })
-                }
-              />
-              <Separator />
-              <MenuItem
-                icon="chatbubble-ellipses-outline"
-                title="Contact Support"
-                subtitle="mail@tikito.in · 7709797951"
-                onPress={() =>
-                  Alert.alert('Contact Support', 'How would you like to reach us?', [
-                    {
-                      text: 'Email',
-                      onPress: () => Linking.openURL('mailto:mail@tikito.in'),
-                    },
-                    {
-                      text: 'Call',
-                      onPress: () => Linking.openURL('tel:7709797951'),
-                    },
-                    { text: 'Cancel', style: 'cancel' },
-                  ])
-                }
-              />
-              <Separator />
-              <MenuItem
-                icon="trash-outline"
-                title="Delete Account"
-                subtitle="Permanently remove your account"
-                onPress={handleDeleteAccount}
-                color="#ef4444"
-              />
-            </View>
-          )}
-        </View>
-
-        {/* FAQ Section - only visible when help is expanded */}
-        {showHelp && (
-          <View className="mt-4 bg-white px-4 py-2">
-            <Text className="px-2 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">
-              Frequently Asked Questions
-            </Text>
-            <FaqItem
-              question="How do I book a turf?"
-              answer="Browse turfs from the Home or Discover tab, select a ground, pick your preferred time slots, and proceed to payment."
-            />
-            <Separator />
-            <FaqItem
-              question="Can I cancel a booking?"
-              answer="Currently, cancellations are handled by the turf owner. Please contact the turf directly or reach out to our support team."
-            />
-            <Separator />
-            <FaqItem
-              question="What payment methods are accepted?"
-              answer="We accept UPI, credit/debit cards, and net banking through Razorpay's secure payment gateway."
-            />
-            <Separator />
-            <FaqItem
-              question="How do I get a refund?"
-              answer="Refunds are processed within 5-7 business days after a cancellation is approved by the turf owner."
-            />
-            <Separator />
-            <FaqItem
-              question="Is my payment information safe?"
-              answer="Yes. All payments are processed by Razorpay with 256-bit SSL encryption. We never store your card details."
-            />
-          </View>
-        )}
-
-        {/* App Info */}
-        <View className="mt-6 items-center">
-          <Text className="text-xs font-medium text-slate-300">
-            Tikito v1.0.0
-          </Text>
-        </View>
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: 20,
+            fontSize: 12,
+            color: C.textMuted,
+            fontWeight: '600',
+          }}
+        >
+          Tikito v1.0.0
+        </Text>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function Separator() {
-  return <View className="mx-2 h-px bg-slate-100" />;
-}
-
-function MenuItem({
-  icon,
-  title,
-  subtitle,
-  onPress,
-  color,
-}: {
-  icon: ComponentProps<typeof Ionicons>['name'];
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-  color?: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row items-center gap-4 rounded-xl px-2 py-4"
-      style={({ pressed }) => ({
-        backgroundColor: pressed ? '#f8fafc' : 'transparent',
-      })}
-    >
-      <View
-        className="h-10 w-10 items-center justify-center rounded-full"
-        style={{ backgroundColor: color ? '#fef2f2' : '#f0fdf4' }}
-      >
-        <Ionicons name={icon} size={20} color={color ?? '#059669'} />
-      </View>
-
-      <View className="flex-1">
-        <Text
-          className="text-[15px] font-bold"
-          style={{ color: color ?? '#0f172a' }}
-        >
-          {title}
-        </Text>
-        <Text className="mt-0.5 text-xs text-slate-400">{subtitle}</Text>
-      </View>
-
-      <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
-    </Pressable>
-  );
-}
-
-function FaqItem({ question, answer }: { question: string; answer: string }) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <Pressable
-      onPress={() => setExpanded(!expanded)}
-      className="px-2 py-4"
-    >
-      <View className="flex-row items-center justify-between">
-        <Text className="flex-1 text-[14px] font-bold text-slate-800">
-          {question}
-        </Text>
-        <Ionicons
-          name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={16}
-          color="#94a3b8"
-        />
-      </View>
-      {expanded && (
-        <Text className="mt-2 text-[13px] leading-5 text-slate-500">
-          {answer}
-        </Text>
-      )}
-    </Pressable>
   );
 }

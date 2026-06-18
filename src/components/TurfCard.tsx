@@ -1,36 +1,36 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, Text, View } from 'react-native';
+import { C, radius } from '@/src/lib/theme';
+import type { Turf } from '@/src/lib/api';
 
-import { type Turf } from '@/src/lib/api';
-
-type TurfCardProps = {
-  turf: Turf;
-  onPress?: () => void;
-};
-
-export function TurfCard({ turf, onPress }: TurfCardProps) {
+export function TurfCard({ turf, onPress }: { turf: Turf; onPress?: () => void }) {
   return (
     <Pressable
-      className="gap-3 rounded-3xl border border-slate-200 bg-white p-5"
       onPress={onPress}
       style={({ pressed }) => ({
-        opacity: pressed ? 0.92 : 1,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: C.border,
+        backgroundColor: C.card,
+        padding: 18,
+        gap: 12,
+        opacity: pressed ? 0.88 : 1,
+        transform: [{ scale: pressed ? 0.98 : 1 }],
       })}
     >
-      <View className="gap-1.5">
-        <Text className="text-xl font-bold text-slate-900">
+      <View style={{ gap: 6 }}>
+        <Text style={{ fontSize: 18, fontWeight: '700', color: C.textPrimary, fontFamily: C.serif }}>
           {turf.turf_name}
         </Text>
-        <View className="flex-row items-center gap-1.5">
-          <Ionicons color="#0F766E" name="location-sharp" size={14} />
-          <Text className="flex-1 text-sm text-slate-600">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <Ionicons name="location-sharp" size={13} color={C.green} />
+          <Text style={{ flex: 1, fontSize: 13, color: C.textSecondary, fontFamily: C.sans }}>
             {turf.turf_location ?? 'Location unavailable'}
           </Text>
         </View>
       </View>
-
-      <View className="self-start rounded-full bg-teal-50 px-3 py-1.5">
-        <Text className="text-xs font-semibold uppercase tracking-[0.5px] text-teal-700">
+      <View style={{ alignSelf: 'flex-start', borderRadius: radius.full, backgroundColor: C.greenSoft, borderWidth: 1, borderColor: C.greenBorder, paddingHorizontal: 12, paddingVertical: 6 }}>
+        <Text style={{ fontSize: 11, fontWeight: '600', color: C.green, letterSpacing: 0.5, fontFamily: C.sans }}>
           {turf.no_of_grounds ?? 0} ground{turf.no_of_grounds === 1 ? '' : 's'}
         </Text>
       </View>

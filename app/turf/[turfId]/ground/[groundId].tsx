@@ -92,7 +92,7 @@ export default function GroundSlotsScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white"
+      className="flex-1 bg-surface-bg"
       edges={['left', 'right', 'bottom']}
     >
       <ScrollView
@@ -101,8 +101,8 @@ export default function GroundSlotsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {slotsQuery.isError ? (
-          <View className="rounded-[24px] bg-rose-50 px-5 py-5">
-            <Text className="text-base font-semibold text-rose-700">
+          <View className="rounded-[24px] bg-surface-card px-5 py-5">
+            <Text className="text-base font-semibold text-gold">
               {slotsQuery.error instanceof Error
                 ? slotsQuery.error.message
                 : 'Could not load available slots.'}
@@ -111,21 +111,21 @@ export default function GroundSlotsScreen() {
         ) : groupedSlots.length ? (
           <View className="gap-4">
             <View className="flex-row items-center justify-between gap-3">
-              <Text className="flex-1 text-[26px] font-black tracking-tight text-emerald-600">
+              <Text className="flex-1 text-[26px] font-black tracking-tight text-gold">
                 {typeof params.groundName === 'string'
                   ? params.groundName
                   : 'Select Slot'}
               </Text>
               {basePriceSlot ? (
-                <View className="rounded-xl bg-emerald-50 px-3 py-2">
-                  <Text className="text-xl font-black tracking-tight text-emerald-600">
+                <View className="rounded-xl bg-gold-light/20 px-3 py-2">
+                  <Text className="text-xl font-black tracking-tight text-gold">
                     ₹ {basePriceSlot.price}
                   </Text>
                 </View>
               ) : null}
             </View>
 
-            <Text className="px-1 text-sm font-semibold text-slate-500">
+            <Text className="px-1 text-sm font-semibold text-ink-secondary">
               Choose your preferred date
             </Text>
             <ScrollView
@@ -140,8 +140,8 @@ export default function GroundSlotsScreen() {
                   <Pressable
                     className={`mr-3 h-[88px] w-[70px] items-center justify-center rounded-2xl border ${
                       isActive
-                        ? 'border-emerald-600 bg-emerald-600'
-                        : 'border-slate-200 bg-white'
+                        ? 'border-gold bg-gold'
+                        : 'border-surface-border bg-surface-card'
                     }`}
                     key={group.date}
                     onPress={() => setSelectedDate(group.date)}
@@ -151,21 +151,21 @@ export default function GroundSlotsScreen() {
                   >
                     <Text
                       className={`text-[11px] font-bold tracking-[1px] ${
-                        isActive ? 'text-white/90' : 'text-slate-500'
+                        isActive ? 'text-white/90' : 'text-ink-secondary'
                       }`}
                     >
                       {formatDayLabel(group.dayOfWeek)}
                     </Text>
                     <Text
                       className={`mt-2 text-[24px] font-black ${
-                        isActive ? 'text-white' : 'text-slate-900'
+                        isActive ? 'text-white' : 'text-ink-primary'
                       }`}
                     >
                       {formatDateNumber(group.date)}
                     </Text>
                     <Text
                       className={`mt-1 text-[11px] font-semibold tracking-[1px] ${
-                        isActive ? 'text-white/80' : 'text-slate-400'
+                        isActive ? 'text-white/80' : 'text-ink-secondary'
                       }`}
                     >
                       {formatMonthLabel(group.date)}
@@ -175,7 +175,7 @@ export default function GroundSlotsScreen() {
               })}
             </ScrollView>
 
-            <Text className="px-1 text-sm font-semibold text-slate-500">
+            <Text className="px-1 text-sm font-semibold text-ink-secondary">
               Choose your preferred timings
             </Text>
             <View className="-mx-1.5 flex-row flex-wrap">
@@ -187,8 +187,8 @@ export default function GroundSlotsScreen() {
                     <Pressable
                       className={`rounded-xl border px-3 py-3 ${
                         isSelected
-                          ? 'border-emerald-600 bg-emerald-50'
-                          : 'border-slate-200 bg-white'
+                          ? 'border-gold bg-gold/15'
+                          : 'border-surface-border bg-surface-card'
                       }`}
                       onPress={() => toggleSlot(slot.slot_id)}
                       style={({ pressed }) => ({
@@ -198,19 +198,19 @@ export default function GroundSlotsScreen() {
                     >
                       <View className="gap-2">
                         {slot.is_peak ? (
-                          <View className="self-start rounded-full bg-amber-50 px-2.5 py-1">
-                            <Text className="text-[10px] font-bold uppercase tracking-[0.6px] text-amber-700">
+                          <View className="self-start rounded-full bg-gold-light/20 px-2.5 py-1">
+                            <Text className="text-[10px] font-bold uppercase tracking-[0.6px] text-gold">
                               Peak
                             </Text>
                           </View>
                         ) : null}
 
-                        <Text className="text-[15px] font-black tracking-tight text-slate-700">
+                        <Text className="text-[15px] font-black tracking-tight text-gold">
                           {formatTime(slot.start_time)} -{' '}
                           {formatTime(slot.end_time)}
                         </Text>
                         {slot.is_peak ? (
-                          <Text className="text-sm font-semibold text-slate-700">
+                          <Text className="text-sm font-semibold text-gold">
                             ₹ {slot.price}
                           </Text>
                         ) : null}
@@ -222,19 +222,19 @@ export default function GroundSlotsScreen() {
             </View>
           </View>
         ) : (
-          <View className="rounded-[24px] border border-emerald-100 bg-emerald-50/40 px-5 py-6">
-            <Text className="text-base font-semibold text-slate-900">
+          <View className="rounded-[24px] border border-gold/25 bg-gold/10 px-5 py-6">
+            <Text className="text-base font-semibold text-gold">
               No slots available for this ground.
             </Text>
           </View>
         )}
       </ScrollView>
 
-      <View className="border-t border-slate-100 bg-white px-5 pb-6 pt-4">
+      <View className="border-t border-surface-border bg-surface-card px-5 pb-6 pt-4">
         <Pressable
           accessibilityRole="button"
           className={`min-h-[56px] flex-row items-center justify-between rounded-2xl px-5 ${
-            selectedSlots.length ? 'bg-emerald-600' : 'bg-slate-300'
+            selectedSlots.length ? 'bg-gold-light/90' : 'bg-surface-elevated'
           }`}
           disabled={!selectedSlots.length}
           onPress={() => {
@@ -262,14 +262,14 @@ export default function GroundSlotsScreen() {
           <View>
             <Text
               className={`text-base font-black tracking-tight ${
-                selectedSlots.length ? 'text-white' : 'text-slate-500'
+                selectedSlots.length ? 'text-pitch-dim' : 'text-ink-secondary'
               }`}
             >
               Continue
             </Text>
             <Text
               className={`text-xs font-semibold ${
-                selectedSlots.length ? 'text-emerald-50' : 'text-slate-500'
+                selectedSlots.length ? 'text-pitch-dim' : 'text-ink-secondary'
               }`}
             >
               {selectedSlots.length
@@ -282,12 +282,12 @@ export default function GroundSlotsScreen() {
 
           <View
             className={`h-9 w-9 items-center justify-center rounded-full ${
-              selectedSlots.length ? 'bg-white/20' : 'bg-slate-200'
+              selectedSlots.length ? 'bg-gold/20' : 'bg-surface-elevated'
             }`}
           >
             <Text
               className={`text-lg font-black ${
-                selectedSlots.length ? 'text-white' : 'text-slate-500'
+                selectedSlots.length ? 'text-gold' : 'text-ink-secondary'
               }`}
             >
               →

@@ -1,65 +1,41 @@
-import { ScrollView, Text, View, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { BookingCard } from '@/src/components/BookingCard';
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
 import { useMyBookingsQuery } from '@/src/hooks/use-auth';
+import { C, radius } from '@/src/lib/theme';
 
 export default function MyBookingsScreen() {
   const bookingsQuery = useMyBookingsQuery(true);
 
-  if (bookingsQuery.isLoading) {
-    return <FullScreenLoader label="Fetching your matches..." />;
-  }
+  if (bookingsQuery.isLoading) return <FullScreenLoader label="Fetching your matches..." />;
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-white"
-      edges={['left', 'right', 'bottom']}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['left', 'right', 'bottom']}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: 24,
-        }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={bookingsQuery.isRefetching}
-            onRefresh={bookingsQuery.refetch}
-            tintColor="#10b981"
-          />
-        }
+        refreshControl={<RefreshControl refreshing={bookingsQuery.isRefetching} onRefresh={bookingsQuery.refetch} tintColor={C.gold} />}
       >
         {bookingsQuery.isError ? (
-          <View className="rounded-3xl bg-rose-50 p-6 border border-rose-100 flex-row items-center">
-            <Ionicons name="alert-circle" size={24} color="#e11d48" />
-            <Text className="ml-3 flex-1 text-sm font-bold text-rose-700">
-              {bookingsQuery.error instanceof Error
-                ? bookingsQuery.error.message
-                : 'Could not load your bookings.'}
+          <View style={{ borderRadius: radius.lg, backgroundColor: 'rgba(224,82,82,0.08)', borderWidth: 1, borderColor: 'rgba(224,82,82,0.2)', padding: 20, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Ionicons name="alert-circle" size={22} color={C.error} />
+            <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: C.error, fontFamily: C.sans }}>
+              {bookingsQuery.error instanceof Error ? bookingsQuery.error.message : 'Could not load your bookings.'}
             </Text>
           </View>
         ) : bookingsQuery.data?.length ? (
-          <View>
-            {bookingsQuery.data.map((booking) => (
-              <BookingCard booking={booking} key={booking.booking_id} />
-            ))}
-          </View>
+          bookingsQuery.data.map(b => <BookingCard booking={b} key={b.booking_id} />)
         ) : (
-          /* Empty State */
-          <View className="mt-10 items-center justify-center rounded-[40px] border-2 border-dashed border-slate-100 bg-slate-50/50 px-8 py-16">
-            <View className="h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm mb-6">
-              <Ionicons name="football-outline" size={40} color="#cbd5e1" />
+          <View style={{ marginTop: 48, alignItems: 'center', borderRadius: radius.xl, borderWidth: 1, borderColor: C.border, borderStyle: 'dashed', paddingVertical: 56, paddingHorizontal: 32 }}>
+            <View style={{ width: 72, height: 72, borderRadius: 999, backgroundColor: C.elevated, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <Ionicons name="football-outline" size={36} color={C.border} />
             </View>
-            <Text className="text-xl font-black text-slate-900">
-              No games scheduled
-            </Text>
-            <Text className="mt-2 text-center text-sm font-medium leading-5 text-slate-500">
-              Ready to hit the field? Your confirmed turf bookings will appear
-              here.
+            <Text style={{ fontSize: 20, fontWeight: '700', color: C.textPrimary, fontFamily: C.serif }}>No games scheduled</Text>
+            <Text style={{ marginTop: 8, fontSize: 13, textAlign: 'center', color: C.textMuted, lineHeight: 20, fontFamily: C.sans }}>
+              Your confirmed turf bookings will appear here.
             </Text>
           </View>
         )}

@@ -1,14 +1,10 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  type PressableProps,
-  Text,
-} from 'react-native';
+import { ActivityIndicator, Pressable, type PressableProps, Text } from 'react-native';
+import { C, radius } from '@/src/lib/theme';
 
 type ButtonProps = PressableProps & {
   title: string;
   loading?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'ghost';
 };
 
 export function Button({
@@ -16,35 +12,63 @@ export function Button({
   loading = false,
   variant = 'primary',
   disabled,
-  className,
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading;
-  const buttonClassName =
-    variant === 'primary' ? 'bg-teal-700' : 'bg-slate-200';
-  const textClassName =
+
+  const bg =
     variant === 'primary'
-      ? 'text-base font-bold text-white'
-      : 'text-base font-bold text-slate-900';
+      ? C.card
+      : variant === 'secondary'
+      ? C.elevated
+      : 'transparent';
+
+  const textColor =
+    variant === 'primary'
+      ? C.gold
+      : variant === 'ghost'
+      ? C.gold
+      : C.textPrimary;
+
+  const borderColor =
+    variant === 'primary'
+      ? C.goldDim
+      : variant === 'ghost'
+      ? C.border
+      : 'transparent';
 
   return (
     <Pressable
       accessibilityRole="button"
-      className={`min-h-[52px] items-center justify-center rounded-2xl px-[18px] ${buttonClassName} ${
-        className ?? ''
-      }`}
       disabled={isDisabled}
       style={({ pressed }) => ({
-        opacity: isDisabled ? 0.7 : pressed ? 0.9 : 1,
+        minHeight: 52,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: radius.lg,
+        paddingHorizontal: 20,
+        backgroundColor: bg,
+        borderWidth: 1,
+        borderColor,
+        opacity: isDisabled ? 0.5 : pressed ? 0.88 : 1,
+        transform: [{ scale: pressed && !isDisabled ? 0.98 : 1 }],
       })}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'primary' ? '#FFFFFF' : '#0F172A'}
-        />
+        <ActivityIndicator color={C.gold} />
       ) : (
-        <Text className={textClassName}>{title}</Text>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: '700',
+            color: textColor,
+            fontFamily: C.serif,
+            letterSpacing: 0.2,
+          }}
+        >
+          {title}
+        </Text>
       )}
     </Pressable>
   );

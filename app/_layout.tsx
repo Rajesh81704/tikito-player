@@ -46,7 +46,7 @@ export default function RootLayout() {
             />
             <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
           </Stack>
-          <StatusBar style="dark" />
+          <StatusBar style="light" />
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

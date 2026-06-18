@@ -1,39 +1,49 @@
-import React from 'react';
-import { View, Text, Pressable, ImageBackground } from 'react-native';
-import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
+import { ImageBackground, Pressable, Text, View } from 'react-native';
+import { C, radius } from '@/src/lib/theme';
 
 export function HomeHero() {
   return (
-    <View
-      className="w-full overflow-hidden rounded-[32px] shadow-sm bg-slate-900"
-      style={{ aspectRatio: 1 }}
-    >
-      <ImageBackground
-        source={require('@/assets/images/hero.png')}
-        resizeMode="cover"
-        className="flex-1"
-      >
-        <View className="absolute inset-0 bg-black/10" />
+    <View style={{ borderRadius: radius.xl, overflow: 'hidden', aspectRatio: 1, backgroundColor: C.card }}>
+      <ImageBackground source={require('@/assets/images/hero.png')} resizeMode="cover" style={{ flex: 1 }}>
+        {/* Dark gradient overlay */}
+        <View style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)' }} />
 
-        <View className="flex-1 items-center justify-between px-8 pt-12 pb-10">
-          {/* Spacer for the football in image */}
-          <View className="h-1/2 w-full" />
+        {/* Gold grain overlay for texture */}
+        <View style={{ position: 'absolute', inset: 0, opacity: 0.03, backgroundColor: C.gold }} />
 
-          <Text className="text-center text-3xl font-black tracking-tighter text-white leading-[42px]">
-            Book Venues With{'\n'}The Best Offers!
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingHorizontal: 28, paddingBottom: 32 }}>
+          {/* Tag line */}
+          <View style={{ alignSelf: 'flex-start', borderRadius: radius.full, borderWidth: 1, borderColor: 'rgba(201,168,76,0.4)', paddingHorizontal: 12, paddingVertical: 5, marginBottom: 14, backgroundColor: 'rgba(201,168,76,0.1)' }}>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: C.gold, letterSpacing: 1.5, fontFamily: C.sans }}>
+              TURF BOOKING
+            </Text>
+          </View>
+
+          <Text style={{ fontSize: 32, fontWeight: '800', color: C.textPrimary, fontFamily: C.serif, lineHeight: 40, alignSelf: 'flex-start', marginBottom: 24, letterSpacing: -0.5 }}>
+            Book Venues{'\n'}With The{'\n'}Best Offers.
           </Text>
 
           <Pressable
             onPress={() => router.replace('/(tabs)/discover')}
-            className="w-full h-16 mt-4 rounded-full bg-white flex-row items-center justify-center active:scale-[0.97] active:opacity-95"
+            style={({ pressed }) => ({
+              width: '100%',
+              height: 54,
+              borderRadius: radius.full,
+              backgroundColor: C.gold,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+              opacity: pressed ? 0.92 : 1,
+            })}
           >
-            <Text className="text-lg font-bold text-slate-900 tracking-tight">
-              Discover
+            <Text style={{ fontSize: 16, fontWeight: '700', color: C.bg, fontFamily: C.serif }}>
+              Discover Turfs
             </Text>
-            <View className="ml-2">
-              <Ionicons name="arrow-forward-sharp" size={20} color="#0f172a" />
-            </View>
+            <Ionicons name="arrow-forward" size={18} color={C.bg} />
           </Pressable>
         </View>
       </ImageBackground>

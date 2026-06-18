@@ -1,17 +1,15 @@
 import { Text, View } from 'react-native';
+import { C } from '@/src/lib/theme';
 
-type AuthBrandHeaderProps = {
-  subtitle: string;
-  className?: string;
-};
+type Props = { subtitle: string; className?: string };
 
-export function AuthBrandHeader({ subtitle, className }: AuthBrandHeaderProps) {
+export function AuthBrandHeader({ subtitle }: Props) {
   return (
-    <View className={`mb-12 ${className ?? ''}`}>
-      <Text className="text-4xl font-black tracking-tighter text-emerald-600">
+    <View style={{ marginBottom: 40 }}>
+      <Text style={{ fontSize: 38, fontWeight: '800', color: C.gold, fontFamily: C.serif, letterSpacing: -0.5 }}>
         Tikito.
       </Text>
-      <Text className="mt-3 max-w-[320px] text-[17px] leading-7 text-slate-600">
+      <Text style={{ marginTop: 10, fontSize: 16, lineHeight: 26, color: C.textSecondary, fontFamily: C.sans, maxWidth: 300 }}>
         {subtitle}
       </Text>
     </View>

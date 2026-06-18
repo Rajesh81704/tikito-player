@@ -1,11 +1,11 @@
 import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { C, radius } from '@/src/lib/theme';
 
 type AuthButtonProps = {
   title: string;
   loading?: boolean;
   onPress: () => void;
   disabled?: boolean;
-  className?: string;
 };
 
 export function AuthButton({
@@ -13,7 +13,6 @@ export function AuthButton({
   loading,
   onPress,
   disabled,
-  className,
 }: AuthButtonProps) {
   const isDisabled = disabled || loading;
 
@@ -21,18 +20,30 @@ export function AuthButton({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      className={`h-[52px] w-full flex-row items-center justify-center rounded-2xl bg-emerald-600 shadow-sm ${
-        className ?? ''
-      }`}
-      style={({ pressed }) => ({
-        opacity: isDisabled ? 0.7 : 1,
-        transform: [{ scale: pressed ? 0.96 : 1 }],
-      })}
+      android_ripple={{ color: C.goldLight }}
+      style={{
+        height: 54,
+        width: '100%',
+        borderRadius: radius.lg,
+        backgroundColor: C.gold,
+        justifyContent: 'center',
+        alignItems: 'center',
+        opacity: isDisabled ? 0.5 : 1,
+        overflow: 'hidden',
+      }}
     >
       {loading ? (
-        <ActivityIndicator color="white" />
+        <ActivityIndicator color={C.bg} />
       ) : (
-        <Text className="text-lg font-bold tracking-tight text-white">
+        <Text
+          style={{
+            fontSize: 17,
+            fontWeight: '700',
+            color: C.bg,
+            fontFamily: C.serif,
+            letterSpacing: 0.3,
+          }}
+        >
           {title}
         </Text>
       )}

@@ -1,16 +1,13 @@
 import { ActivityIndicator, Text, View } from 'react-native';
+import { C } from '@/src/lib/theme';
 
-type FullScreenLoaderProps = {
-  label?: string;
-};
-
-export function FullScreenLoader({
-  label = 'Loading...',
-}: FullScreenLoaderProps) {
+export function FullScreenLoader({ label = 'Loading...' }: { label?: string }) {
   return (
-    <View className="flex-1 items-center justify-center gap-3 bg-white px-6">
-      <ActivityIndicator color="#0F766E" size="large" />
-      <Text className="text-[15px] text-slate-600">{label}</Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg, gap: 16, paddingHorizontal: 24 }}>
+      <ActivityIndicator color={C.gold} size="large" />
+      <Text style={{ fontSize: 13, color: C.textMuted, fontFamily: C.sans, letterSpacing: 0.4 }}>
+        {label}
+      </Text>
     </View>
   );
 }
