@@ -41,7 +41,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tikito.player"
+      "bundleIdentifier": "com.tikito.player",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
