@@ -68,66 +68,6 @@ function SettingRow({
   );
 }
 
-function Accordion({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <View
-      style={{
-        backgroundColor: C.card,
-        borderRadius: radius.xl,
-        marginBottom: 14,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: C.border,
-      }}
-    >
-      <Pressable
-        onPress={() => setOpen(!open)}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 18,
-          paddingVertical: 18,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: '700',
-            color: C.textPrimary,
-          }}
-        >
-          {title}
-        </Text>
-
-        <Ionicons
-          name={open ? 'chevron-up' : 'chevron-down'}
-          size={20}
-          color={C.textSecondary}
-        />
-      </Pressable>
-
-      {open && (
-        <View
-          style={{
-            borderTopWidth: 1,
-            borderTopColor: C.border,
-          }}
-        >
-          {children}
-        </View>
-      )}
-    </View>
-  );
-}
 
 export default function ProfileScreen() {
   const { logout, clearSession } = useAuth();
@@ -357,12 +297,25 @@ export default function ProfileScreen() {
 
         {/* Support */}
 
-        <Accordion title="Support">
+        <View
+          style={{
+            backgroundColor: C.card,
+            borderRadius: radius.xl,
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: C.border,
+          }}
+        >
           <SettingRow
             icon="mail-outline"
             title="Contact Support"
             onPress={() =>
-              Linking.openURL('mailto:tikitoapp@gmail.com')
+              Linking.openURL('mailto:tikitoapp@gmail.com').catch(() =>
+                Alert.alert(
+                  'Error',
+                  'Could not open email client. Please reach out to tikitoapp@gmail.com'
+                )
+              )
             }
           />
 
@@ -373,7 +326,7 @@ export default function ProfileScreen() {
             onPress={handleDeleteAccount}
             isLast
           />
-        </Accordion>
+        </View>
 
         <View
           style={{
