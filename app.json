@@ -44,7 +44,8 @@
       "bundleIdentifier": "com.tikito.player",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "TVH3M8C5WK"
     },
     "android": {
       "adaptiveIcon": {
