@@ -16,10 +16,12 @@ export default function LoginScreen() {
   const loginMutation = useLoginMutation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = () => {
+    setError(null);
     if (!identifier.trim() || !password.trim()) {
-      Alert.alert('Missing details', 'Enter your email and password to continue.');
+      setError('Enter your email and password to continue.');
       return;
     }
     loginMutation.mutate(
@@ -27,9 +29,23 @@ export default function LoginScreen() {
       {
         onSuccess: async (data) => {
           try { await signIn(data); router.replace('/(tabs)'); }
-          catch { Alert.alert('Error', 'Could not complete sign in.'); }
+          catch (err) { 
+            const msg = err instanceof Error ? err.message : 'Could not complete sign in.';
+            if (msg === 'User not found' || msg === 'Invalid credentials') {
+              setError('Incorrect email or password');
+            } else {
+              setError(msg);
+            }
+          }
         },
-        onError: (err) => Alert.alert('Login Failed', err instanceof Error ? err.message : 'Try again.'),
+        onError: (err) => {
+          const msg = err instanceof Error ? err.message : 'Try again.';
+          if (msg === 'User not found' || msg === 'Invalid credentials') {
+            setError('Incorrect email or password');
+          } else {
+            setError(msg);
+          }
+        },
       }
     );
   };
@@ -57,9 +73,15 @@ export default function LoginScreen() {
             <Text style={{ fontSize: 26, fontWeight: '700', color: C.textPrimary, fontFamily: C.serif, letterSpacing: -0.3 }}>
               Welcome back
             </Text>
-            <Text style={{ marginTop: 6, marginBottom: 28, fontSize: 14, color: C.textSecondary, fontFamily: C.sans }}>
+            <Text style={{ marginTop: 6, marginBottom: 20, fontSize: 14, color: C.textSecondary, fontFamily: C.sans }}>
               Sign in to continue to your account
             </Text>
+
+            {error ? (
+              <View style={{ backgroundColor: '#FEE2E2', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                <Text style={{ color: '#DC2626', fontSize: 14, fontFamily: C.sans }}>{error}</Text>
+              </View>
+            ) : null}
 
             <TextField autoCapitalize="none" keyboardType="email-address" label="EMAIL OR PHONE" onChangeText={setIdentifier} placeholder="you@example.com" value={identifier} />
             <TextField label="PASSWORD" onChangeText={setPassword} placeholder="Your password" secureTextEntry value={password} />

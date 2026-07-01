@@ -17,10 +17,12 @@ export default function SignupScreen() {
   const [phoneNo, setPhoneNo] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignup = () => {
-    if (!fullName.trim() || !phoneNo.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Missing details', 'Please fill in all fields.');
+    setError(null);
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
+      setError('Please fill in all required fields.');
       return;
     }
     signupMutation.mutate(
@@ -32,10 +34,22 @@ export default function SignupScreen() {
             await signIn(auth);
             router.replace('/(tabs)');
           } catch (err) {
-            Alert.alert('Account created', err instanceof Error ? err.message : 'Please log in.');
+            const msg = err instanceof Error ? err.message : 'Please log in.';
+            if (msg === 'User not found' || msg === 'Invalid credentials') {
+              setError('Incorrect email or password');
+            } else {
+              setError(msg);
+            }
           }
         },
-        onError: (err) => Alert.alert('Signup failed', err instanceof Error ? err.message : 'Please try again.'),
+        onError: (err) => {
+          const msg = err instanceof Error ? err.message : 'Please try again.';
+          if (msg === 'User not found' || msg === 'Invalid credentials') {
+            setError('Incorrect email or password');
+          } else {
+            setError(msg);
+          }
+        },
       }
     );
   };
@@ -45,8 +59,13 @@ export default function SignupScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 56 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <AuthBrandHeader subtitle="Find turfs, book slots instantly, never miss a game." />
+          {error ? (
+            <View style={{ backgroundColor: '#FEE2E2', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+              <Text style={{ color: '#DC2626', fontSize: 14, fontFamily: C.sans }}>{error}</Text>
+            </View>
+          ) : null}
           <TextField label="FULL NAME" onChangeText={setFullName} placeholder="Your full name" value={fullName} />
-          <TextField keyboardType="phone-pad" label="PHONE NUMBER" onChangeText={setPhoneNo} placeholder="9876543210" value={phoneNo} />
+          <TextField keyboardType="phone-pad" label="PHONE NUMBER (OPTIONAL)" onChangeText={setPhoneNo} placeholder="9876543210" value={phoneNo} />
           <TextField autoCapitalize="none" keyboardType="email-address" label="EMAIL" onChangeText={setEmail} placeholder="you@example.com" value={email} />
           <TextField label="PASSWORD" onChangeText={setPassword} placeholder="Choose a strong password" secureTextEntry value={password} />
           <View style={{ marginTop: 8 }}>

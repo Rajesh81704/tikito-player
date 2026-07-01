@@ -131,13 +131,17 @@ export async function signupUser(payload: SignupPayload) {
 
 export async function loginUser(payload: LoginPayload) {
   try {
-    const { data } = await apiClient.post<AuthResponse>('/auth/login', payload);
+    const { data } = await apiClient.post<AuthResponse | ApiErrorResponse>('/auth/login', payload);
 
-    if (!data.access_token) {
+    if ('error' in data && data.error) {
+      throw new Error(data.error);
+    }
+
+    if (!('access_token' in data) || !data.access_token) {
       throw new Error('Access token missing from login response.');
     }
 
-    return data;
+    return data as AuthResponse;
   } catch (error) {
     throw new Error(extractApiErrorMessage(error));
   }
