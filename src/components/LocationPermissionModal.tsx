@@ -141,7 +141,7 @@ export function LocationPermissionModal({
           {/* Benefits */}
           <View style={{ gap: 14, marginBottom: 28 }}>
             {[
-              'Discover nearby turfs',
+              'Discover nearby turfs',  
               'Get city-specific recommendations',
               'Faster booking experience',
             ].map((item) => (

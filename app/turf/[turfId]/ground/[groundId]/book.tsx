@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
@@ -6,6 +6,7 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
+import { useAuth } from '@/src/context/AuthContext';
 import {
   useBookSlotMutation,
   useCreatePaymentOrderMutation,
@@ -29,6 +30,7 @@ function formatDateLabel(date: string) {
 }
 
 export default function BookScreen() {
+  const { isAuthenticated } = useAuth();
   const params = useLocalSearchParams<{
     turfId?: string;
     groundId?: string;
@@ -48,6 +50,11 @@ export default function BookScreen() {
       : [];
 
   const totalAmount = selectedSlots.reduce((sum, slot) => sum + slot.price, 0);
+
+  // Require authentication for booking
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   if (!selectedSlots.length) {
     return <FullScreenLoader label="Loading booking details..." />;

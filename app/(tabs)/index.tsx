@@ -11,6 +11,7 @@ import { LocationPermissionModal } from '@/src/components/LocationPermissionModa
 import { HomeHero } from '@/src/components/HomeHero';
 import { HomeTurfCard } from '@/src/components/HomeTurfCard';
 import { useMyBookingsQuery, useNearbyTurfsQuery, useTurfsQuery } from '@/src/hooks/use-auth';
+import { useAuth } from '@/src/context/AuthContext';
 import { useStoredLocation } from '@/src/hooks/use-stored-location';
 import { setStoredLocation } from '@/src/lib/storage';
 import { C, radius } from '@/src/lib/theme';
@@ -19,12 +20,14 @@ const LOCATION_TIMEOUT_MS = 10000;
 const STATUS_BAR_H = Constants.statusBarHeight || 16;
 
 export default function HomeScreen() {
+  const { isAuthenticated } = useAuth();
   const { location, isLoading } = useStoredLocation();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const turfsQuery = useTurfsQuery(location?.city, Boolean(location?.city));
   const nearbyTurfsQuery = useNearbyTurfsQuery(location?.latitude, location?.longitude, Boolean(location?.latitude));
-  const bookingsQuery = useMyBookingsQuery(true);
+  // Only fetch bookings if user is authenticated
+  const bookingsQuery = useMyBookingsQuery(isAuthenticated);
 
   const upcomingBookings = useMemo(() => {
     const today = startOfDay(new Date());
@@ -146,6 +149,7 @@ export default function HomeScreen() {
           </View>
 
           {/* Upcoming Bookings */}
+          {isAuthenticated && (
           <View style={{ marginTop: 36 }}>
             <View style={{ paddingHorizontal: 20, marginBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontSize: 20, fontWeight: '700', color: C.textPrimary, fontFamily: C.serif, letterSpacing: -0.3 }}>Your Schedule</Text>
@@ -171,6 +175,7 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
+          )}
         </ScrollView>
       </View>
 
