@@ -1,6 +1,6 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthBrandHeader } from '@/src/components/AuthBrandHeader';
 import { AuthButton } from '@/src/components/AuthButton';
@@ -57,6 +57,15 @@ export default function SignupScreen() {
             <Link href="/(auth)/login" asChild>
               <Text style={{ fontWeight: '700', color: C.gold, fontFamily: C.sans, fontSize: 14 }}>Login</Text>
             </Link>
+          </View>
+
+          <View style={{ marginTop: 32, paddingBottom: 24 }}>
+            <Text style={{ textAlign: 'center', color: C.textSecondary, fontFamily: C.sans, fontSize: 12 }}>
+              By signing up, you agree to our{' '}
+              <Text style={{ color: C.gold, textDecorationLine: 'underline' }} onPress={() => Linking.openURL('https://tikitoapp.netlify.app/privacy-policy')}>
+                Privacy Policy
+              </Text>
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

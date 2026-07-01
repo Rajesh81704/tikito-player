@@ -320,6 +320,13 @@ export default function ProfileScreen() {
           />
 
           <SettingRow
+            icon="document-text-outline"
+            title="Privacy Policy"
+            onPress={() =>
+              Linking.openURL('https://tikitoapp.netlify.app/privacy-policy')
+            }
+          />
+          <SettingRow
             icon="trash-outline"
             title="Delete Account"
             color={C.error}
