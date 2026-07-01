@@ -7,16 +7,8 @@ import { useAuth } from '@/src/context/AuthContext';
 import { C } from '@/src/lib/theme';
 
 export default function TabsLayout() {
-  const { isAuthenticated, isHydrating } = useAuth();
-
-  if (isHydrating) {
-    return <FullScreenLoader label="Loading..." />;
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
+  // Auth check removed - users can browse without logging in
+  // Authentication will be required only for booking
   return (
     <Tabs
       screenOptions={{

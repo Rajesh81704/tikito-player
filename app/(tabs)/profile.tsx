@@ -70,10 +70,37 @@ function SettingRow({
 
 
 export default function ProfileScreen() {
-  const { logout, clearSession } = useAuth();
+  const { isAuthenticated, logout, clearSession } = useAuth();
   const { data: me } = useCurrentUserQuery();
 
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // If not authenticated, show login prompt
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+          <View style={{ width: 90, height: 90, borderRadius: 45, backgroundColor: C.elevated, justifyContent: 'center', alignItems: 'center', marginBottom: 20, borderWidth: 2, borderColor: C.border }}>
+            <Ionicons name="person-outline" size={40} color={C.textMuted} />
+          </View>
+          <Text style={{ fontSize: 22, fontWeight: '700', color: C.textPrimary, fontFamily: C.serif, marginBottom: 8 }}>Sign in to continue</Text>
+          <Text style={{ fontSize: 14, color: C.textSecondary, fontFamily: C.sans, textAlign: 'center', marginBottom: 24 }}>Create an account or sign in to view your bookings and manage your profile</Text>
+          <Pressable
+            onPress={() => router.push('/(auth)/login')}
+            style={{ backgroundColor: C.gold, paddingHorizontal: 32, paddingVertical: 14, borderRadius: radius.lg }}
+          >
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff', fontFamily: C.sans }}>Sign In</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/(auth)/signup')}
+            style={{ marginTop: 12, paddingHorizontal: 32, paddingVertical: 14 }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: C.gold, fontFamily: C.sans }}>Create Account</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const initials = useMemo(() => {
     const name = me?.full_name?.trim();
