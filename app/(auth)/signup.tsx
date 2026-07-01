@@ -1,4 +1,5 @@
 import { Link, router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,7 +33,14 @@ export default function SignupScreen() {
           try {
             const auth = await loginUser({ identifier: vars.email, password: vars.password, role: 'user' });
             await signIn(auth);
-            router.replace('/(tabs)');
+            const pendingBooking = await AsyncStorage.getItem('pendingBooking');
+            if (pendingBooking) {
+              await AsyncStorage.removeItem('pendingBooking');
+              const { pathname, params } = JSON.parse(pendingBooking);
+              router.replace({ pathname, params });
+            } else {
+              router.replace('/(tabs)');
+            }
           } catch (err) {
             const msg = err instanceof Error ? err.message : 'Please log in.';
             if (msg === 'User not found' || msg === 'Invalid credentials') {

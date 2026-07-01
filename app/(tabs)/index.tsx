@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { isAfter, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { FullScreenLoader } from '@/src/components/FullScreenLoader';
@@ -38,14 +39,27 @@ export default function HomeScreen() {
   }, [bookingsQuery.data]);
 
   useEffect(() => {
-    if (!isLoading && !location) setShowLocationModal(true);
+    const checkModal = async () => {
+      if (!isLoading && !location) {
+        const hasSeen = await AsyncStorage.getItem('hasSeenLocationModal');
+        if (!hasSeen) {
+          setShowLocationModal(true);
+        }
+      }
+    };
+    checkModal();
   }, [isLoading, location]);
+
+  const handleCloseLocationModal = async () => {
+    await AsyncStorage.setItem('hasSeenLocationModal', 'true');
+    setShowLocationModal(false);
+  };
 
   const handleAcceptLocation = async () => {
     try {
       setIsRequestingLocation(true);
       const perm = await Location.requestForegroundPermissionsAsync();
-      if (perm.status !== 'granted') { Alert.alert('Permission denied', 'Enable location to see nearby turfs.'); setShowLocationModal(false); return; }
+      if (perm.status !== 'granted') { Alert.alert('Permission denied', 'Enable location to see nearby turfs.'); handleCloseLocationModal(); return; }
       const enabled = await Location.hasServicesEnabledAsync();
       if (!enabled) { Alert.alert('Location off', 'Turn on location services and try again.'); return; }
       const last = await Location.getLastKnownPositionAsync();
@@ -57,7 +71,7 @@ export default function HomeScreen() {
       const place = geo[0];
       const city = place?.city ?? place?.subregion ?? place?.district ?? place?.region ?? 'Your city';
       await setStoredLocation({ city, latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-      setShowLocationModal(false);
+      handleCloseLocationModal();
     } catch (err) {
       Alert.alert('Could not fetch location', err instanceof Error ? err.message : 'Please try again.');
     } finally {
@@ -179,7 +193,7 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
 
-      <LocationPermissionModal loading={isRequestingLocation} onAccept={handleAcceptLocation} onClose={() => setShowLocationModal(false)} visible={showLocationModal} />
+      <LocationPermissionModal loading={isRequestingLocation} onAccept={handleAcceptLocation} onClose={handleCloseLocationModal} visible={showLocationModal} />
     </>
   );
 }

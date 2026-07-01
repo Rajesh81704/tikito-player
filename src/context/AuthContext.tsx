@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createContext,
   type PropsWithChildren,
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const clearSession = useCallback(async () => {
     await clearStoredToken();
     await clearStoredLocation();
+    await AsyncStorage.removeItem('hasSeenLocationModal');
     setToken(null);
     setUser(null);
     queryClient.clear();

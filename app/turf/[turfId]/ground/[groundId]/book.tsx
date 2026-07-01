@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams, Redirect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
@@ -50,11 +51,6 @@ export default function BookScreen() {
       : [];
 
   const totalAmount = selectedSlots.reduce((sum, slot) => sum + slot.price, 0);
-
-  // Require authentication for booking
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
-  }
 
   if (!selectedSlots.length) {
     return <FullScreenLoader label="Loading booking details..." />;
@@ -168,19 +164,37 @@ export default function BookScreen() {
     }
   };
 
+  const handleLoginToBook = async () => {
+    try {
+      await AsyncStorage.setItem(
+        'pendingBooking',
+        JSON.stringify({
+          pathname: '/turf/[turfId]/ground/[groundId]/book',
+          params: params,
+        })
+      );
+      router.push('/(auth)/login');
+    } catch (err) {
+      console.error('Failed to save pending booking', err);
+      router.push('/(auth)/login');
+    }
+  };
+
   const isPending =
     isProcessing ||
     bookSlotMutation.isPending ||
     createOrderMutation.isPending ||
     verifyPaymentMutation.isPending;
 
-  const buttonLabel = bookSlotMutation.isPending
-    ? 'Booking slots...'
-    : createOrderMutation.isPending
-      ? 'Creating order...'
-      : verifyPaymentMutation.isPending
-        ? 'Verifying payment...'
-        : 'Pay ₹' + totalAmount;
+  const buttonLabel = !isAuthenticated
+    ? 'Login to pay and book'
+    : bookSlotMutation.isPending
+      ? 'Booking slots...'
+      : createOrderMutation.isPending
+        ? 'Creating order...'
+        : verifyPaymentMutation.isPending
+          ? 'Verifying payment...'
+          : 'Pay ₹' + totalAmount;
 
   return (
     <SafeAreaView
@@ -287,7 +301,7 @@ export default function BookScreen() {
             isPending ? 'bg-surface-elevated' : 'bg-gold-light/90'
           }`}
           disabled={isPending}
-          onPress={handleConfirmAndPay}
+          onPress={!isAuthenticated ? handleLoginToBook : handleConfirmAndPay}
           style={({ pressed }) => ({
             transform: [{ scale: pressed && !isPending ? 0.99 : 1 }],
             opacity: isPending ? 1 : pressed ? 0.96 : 1,

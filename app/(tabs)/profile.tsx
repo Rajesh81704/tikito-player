@@ -75,6 +75,23 @@ export default function ProfileScreen() {
 
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const initials = useMemo(() => {
+    const name = me?.full_name?.trim();
+
+    if (!name) return 'U';
+
+    const parts = name.split(/\s+/);
+
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return (
+      (parts[0][0] ?? '') +
+      (parts[1][0] ?? '')
+    ).toUpperCase();
+  }, [me?.full_name]);
+
   // If not authenticated, show login prompt
   if (!isAuthenticated) {
     return (
@@ -102,22 +119,6 @@ export default function ProfileScreen() {
     );
   }
 
-  const initials = useMemo(() => {
-    const name = me?.full_name?.trim();
-
-    if (!name) return 'U';
-
-    const parts = name.split(/\s+/);
-
-    if (parts.length === 1) {
-      return parts[0].slice(0, 2).toUpperCase();
-    }
-
-    return (
-      (parts[0][0] ?? '') +
-      (parts[1][0] ?? '')
-    ).toUpperCase();
-  }, [me?.full_name]);
 
   const handleLogout = () => {
     Alert.alert(
